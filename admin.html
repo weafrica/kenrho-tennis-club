@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin — KenRho Park Tennis Club</title>
+<link rel="icon" href="assets/logo.png" />
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="app-shell">
+
+<div class="app-nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html"><img src="assets/logo.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
+    <div class="flex gap-16">
+      <span class="muted small" id="admin-name">—</span>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm">My member view</a>
+      <button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button>
+    </div>
+  </div>
+  <div class="wrap tabs mt-16">
+    <a data-tab="members" class="active">Members <span id="pending-count" class="badge pending" style="margin-left:6px;"></span></a>
+    <a data-tab="receipts">Receipts <span id="pending-receipt-count" class="badge pending" style="margin-left:6px;"></span></a>
+    <a data-tab="invoices">Invoices</a>
+    <a data-tab="bookings">Court bookings</a>
+    <a data-tab="journal">Journal &amp; ledger</a>
+    <a data-tab="reports">Financial reports</a>
+    <a data-tab="settings">Settings</a>
+  </div>
+</div>
+
+<main class="app-main">
+  <div class="wrap" style="max-width:1120px;">
+
+    <!-- ================= MEMBERS ================= -->
+    <section id="tab-members" class="admin-tab">
+      <h3>Pending approvals</h3>
+      <div class="table-wrap">
+        <table id="pending-members-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3 class="mt-32">All members</h3>
+      <div class="table-wrap">
+        <table id="all-members-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Role</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= RECEIPTS ================= -->
+    <section id="tab-receipts" class="admin-tab hidden">
+      <h3>Pending payment proofs</h3>
+      <div class="table-wrap">
+        <table id="pending-receipts-table">
+          <thead><tr><th>Member</th><th>Amount</th><th>Method</th><th>Reference</th><th>Proof</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3 class="mt-32">All receipts</h3>
+      <div class="table-wrap">
+        <table id="all-receipts-table">
+          <thead><tr><th>Receipt #</th><th>Member</th><th>Amount</th><th>Submitted</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= INVOICES ================= -->
+    <section id="tab-invoices" class="admin-tab hidden">
+      <div class="card">
+        <h3>Generate an invoice</h3>
+        <form id="invoice-form">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Member</label>
+              <select id="invoice-member" required></select>
+            </div>
+            <div class="form-row">
+              <label>Amount</label>
+              <input type="number" step="0.01" id="invoice-amount" required />
+            </div>
+            <div class="form-row">
+              <label>Description</label>
+              <input type="text" id="invoice-desc" placeholder="Annual membership 2026" />
+            </div>
+            <div class="form-row">
+              <label>Due date (optional)</label>
+              <input type="date" id="invoice-due" />
+            </div>
+          </div>
+          <button class="btn btn-primary">Create invoice</button>
+          <p class="muted small mt-8">This automatically posts a journal entry: debit Accounts Receivable, credit Membership Revenue.</p>
+        </form>
+      </div>
+
+      <h3 class="mt-32">All invoices</h3>
+      <div class="table-wrap">
+        <table id="admin-invoices-table">
+          <thead><tr><th>Invoice #</th><th>Member</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= BOOKINGS ================= -->
+    <section id="tab-bookings" class="admin-tab hidden">
+      <div class="card">
+        <h3>Book a court for a walk-in / day visitor</h3>
+        <p class="muted small">For someone paying at the gate without a member account. Choose a member instead if they're already registered.</p>
+        <form id="walkin-booking-form">
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Court</label>
+              <select id="wb-court"></select>
+            </div>
+            <div class="form-row">
+              <label>Date</label>
+              <input type="date" id="wb-date" required />
+            </div>
+            <div class="form-row">
+              <label>Start time</label>
+              <select id="wb-time"></select>
+            </div>
+            <div class="form-row">
+              <label>Booking type</label>
+              <select id="wb-type"><option value="free">Free</option><option value="paid" selected>Paid</option></select>
+            </div>
+            <div class="form-row">
+              <label>Member (optional — leave blank for a guest)</label>
+              <select id="wb-member"><option value="">— Guest / day visitor —</option></select>
+            </div>
+            <div class="form-row">
+              <label>Guest name (if no member selected)</label>
+              <input type="text" id="wb-guest-name" placeholder="e.g. Jane Visitor" />
+            </div>
+          </div>
+          <button class="btn btn-primary">Create booking</button>
+        </form>
+      </div>
+
+      <div class="flex-between mt-32">
+        <h3>Bookings</h3>
+        <div class="form-row mb-0"><input type="date" id="ab-date" /></div>
+      </div>
+      <div class="table-wrap">
+        <table id="admin-bookings-table" class="compact">
+          <thead><tr><th>Court</th><th>Time</th><th>Booked by</th><th>Type</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= JOURNAL ================= -->
+    <section id="tab-journal" class="admin-tab hidden">
+      <div class="card">
+        <h3>New manual journal entry</h3>
+        <p class="muted small">Use this for anything that isn't an invoice or a member payment — court maintenance, bank charges, sponsorship income, equipment purchases, and so on.</p>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Date</label>
+            <input type="date" id="manual-date" />
+          </div>
+          <div class="form-row">
+            <label>Description</label>
+            <input type="text" id="manual-description" placeholder="e.g. Court resurfacing — invoice #4521" />
+          </div>
+        </div>
+        <div class="form-grid" style="grid-template-columns:2fr 1fr 1fr;align-items:end;">
+          <div class="form-row mb-0">
+            <label>Account</label>
+            <select id="manual-account"></select>
+          </div>
+          <div class="form-row mb-0">
+            <label>Side</label>
+            <select id="manual-side"><option value="debit">Debit</option><option value="credit">Credit</option></select>
+          </div>
+          <div class="form-row mb-0">
+            <label>Amount</label>
+            <input type="number" step="0.01" id="manual-line-amount" />
+          </div>
+        </div>
+        <button type="button" id="manual-add-line" class="btn btn-outline btn-sm mt-8">+ Add line</button>
+
+        <div class="table-wrap mt-16">
+          <table id="manual-lines-table" class="compact">
+            <thead><tr><th>Account</th><th class="right">Debit</th><th class="right">Credit</th><th></th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td><strong>Totals</strong></td><td class="right" id="manual-total-debit">—</td><td class="right" id="manual-total-credit">—</td><td></td></tr></tfoot>
+          </table>
+        </div>
+        <p id="manual-balance-msg" class="muted mt-8"></p>
+        <button id="btn-post-manual" class="btn btn-primary mt-8" disabled>Post entry</button>
+      </div>
+
+      <h3 class="mt-32">Recent journal activity</h3>
+      <div class="table-wrap">
+        <table id="recent-journal-table" class="compact">
+          <thead><tr><th>Date</th><th>Description</th><th>Account</th><th class="right">Debit</th><th class="right">Credit</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= REPORTS ================= -->
+    <section id="tab-reports" class="admin-tab hidden">
+
+      <div class="flex-between">
+        <h3>Trial balance</h3>
+        <div class="form-row mb-0"><input type="date" id="tb-date" /></div>
+      </div>
+      <div class="table-wrap">
+        <table id="trial-balance-table" class="compact">
+          <thead><tr><th>Code</th><th>Account</th><th class="right">Debit</th><th class="right">Credit</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><td colspan="2"><strong>Totals</strong></td><td class="right" id="tb-total-debit">—</td><td class="right" id="tb-total-credit">—</td></tr></tfoot>
+        </table>
+      </div>
+
+      <h3 class="mt-32">Income statement</h3>
+      <div class="flex gap-12">
+        <div class="form-row mb-0"><label class="small">From</label><input type="date" id="is-start" /></div>
+        <div class="form-row mb-0"><label class="small">To</label><input type="date" id="is-end" /></div>
+      </div>
+      <div class="card" id="income-statement-body"></div>
+
+      <div class="flex-between mt-32">
+        <h3>Balance sheet</h3>
+        <div class="form-row mb-0"><input type="date" id="bs-date" /></div>
+      </div>
+      <div class="card" id="balance-sheet-body"></div>
+
+      <h3 class="mt-32">T-accounts</h3>
+      <p class="muted small">A running ledger for every account, updated automatically as invoices, receipts and manual entries are posted.</p>
+      <div class="grid grid-2" id="t-accounts-container"></div>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section id="tab-settings" class="admin-tab hidden">
+      <div class="card" style="max-width:560px;">
+        <h3>Club settings</h3>
+        <form id="settings-form">
+          <div class="form-row"><label>Club name</label><input type="text" id="set-club-name" /></div>
+          <div class="form-grid">
+            <div class="form-row"><label>Standard membership fee</label><input type="number" step="0.01" id="set-fee" /></div>
+            <div class="form-row"><label>Currency (ISO code)</label><input type="text" id="set-currency" maxlength="3" /></div>
+          </div>
+          <div class="form-row"><label>Fee period label</label><input type="text" id="set-fee-label" placeholder="Annual Membership" /></div>
+          <div class="form-row"><label>Banking details shown to members</label><textarea id="set-bank" rows="3"></textarea></div>
+          <div class="form-row">
+            <label class="flex gap-8" style="font-weight:500;">
+              <input type="checkbox" id="set-auto-approve" style="width:auto;" />
+              Auto-approve members as soon as they upload proof of payment (skip manual admin review of the membership status — receipts are still listed as "pending" for you to verify financially)
+            </label>
+          </div>
+          <h3 class="mt-24">Court bookings</h3>
+          <div class="form-grid">
+            <div class="form-row"><label>Paid court fee (per hour)</label><input type="number" step="0.01" id="set-court-fee" /></div>
+            <div class="form-row"><label>Book how many days ahead</label><input type="number" id="set-booking-days" /></div>
+            <div class="form-row"><label>Courts open from</label><input type="time" id="set-open-time" /></div>
+            <div class="form-row"><label>Courts open until</label><input type="time" id="set-close-time" /></div>
+          </div>
+          <button class="btn btn-primary">Save settings</button>
+        </form>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

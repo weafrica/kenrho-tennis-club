@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My membership — KenRho Park Tennis Club</title>
+<link rel="icon" href="assets/logo.png" />
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="app-shell">
+
+<div class="app-nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html"><img src="assets/logo.png" alt="" /><span>KenRho Park</span></a>
+    <div class="tabs">
+      <a href="dashboard.html" class="active">My membership</a>
+      <a href="booking.html">Book a court</a>
+    </div>
+    <div class="flex gap-16">
+      <img id="member-avatar" src="assets/logo.png" alt="" style="height:34px;width:34px;border-radius:50%;object-fit:cover;" />
+      <button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<main class="app-main">
+  <div class="wrap">
+
+    <div id="status-banner" class="alert hidden"></div>
+
+    <div class="flex-between mt-16">
+      <div>
+        <h2 id="member-name" class="mb-0">—</h2>
+        <p class="muted" id="member-email">—</p>
+      </div>
+      <div id="member-status-badge"></div>
+    </div>
+
+    <div class="grid grid-3 mt-24">
+      <div class="stat">
+        <div class="label">Membership fee</div>
+        <div class="value" id="fee-amount">—</div>
+        <div class="muted small" id="fee-period">—</div>
+      </div>
+      <div class="stat">
+        <div class="label">How to pay</div>
+        <p class="muted small mb-0" id="bank-details">—</p>
+      </div>
+      <div class="stat flex" style="align-items:center;justify-content:center;">
+        <button id="btn-pay-general" class="btn btn-primary" style="width:100%;justify-content:center;">Upload proof of payment</button>
+      </div>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="flex-between">
+      <h3>Invoices</h3>
+    </div>
+    <div class="table-wrap">
+      <table id="invoices-table">
+        <thead><tr><th>Invoice</th><th>Description</th><th>Issued</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="invoices-empty" class="empty hidden">No invoices yet. Use "Upload proof of payment" above once you've paid your membership fee.</div>
+
+    <div class="rule"></div>
+
+    <h3>My payments</h3>
+    <div class="table-wrap">
+      <table id="receipts-table">
+        <thead><tr><th>Receipt</th><th>Submitted</th><th>Amount</th><th>Method</th><th>Status</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="receipts-empty" class="empty hidden">You haven't submitted any payments yet.</div>
+
+  </div>
+</main>
+
+<div id="pay-modal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="pay-modal-title">Upload proof of payment</h3>
+    <form id="pay-form">
+      <input type="hidden" id="pay-invoice-id" />
+      <div class="form-row">
+        <label>Amount paid</label>
+        <input type="number" step="0.01" id="pay-amount" required />
+      </div>
+      <div class="form-row">
+        <label>Payment method</label>
+        <select id="pay-method">
+          <option>EFT</option>
+          <option>Cash</option>
+          <option>Card</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Bank reference (optional)</label>
+        <input type="text" id="pay-reference" placeholder="e.g. your name as used in the EFT reference" />
+      </div>
+      <div class="form-row">
+        <label>Proof of payment (PDF or image)</label>
+        <input type="file" id="pay-file" accept=".pdf,image/*" />
+      </div>
+      <div class="flex gap-12 mt-16">
+        <button type="submit" id="pay-submit-btn" class="btn btn-primary">Submit for verification</button>
+        <button type="button" id="pay-cancel" class="btn btn-outline">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/invoice.js"></script>
+<script src="js/member.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

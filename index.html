@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KenRho Park Tennis Club</title>
+<meta name="description" content="KenRho Park Tennis Club — six courts at Rhodes Park, Kensington, Johannesburg, open daily 6am-6pm. Join online, pay your membership, and get on court." />
+<link rel="icon" href="assets/logo.png" />
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html">
+      <img src="assets/logo.png" alt="KenRho Park Tennis Club crest" />
+      <span>KenRho Park</span>
+    </a>
+    <div class="nav-links" id="nav-links">
+      <a href="#about">About</a>
+      <a href="#membership">Membership</a>
+      <a href="#booking">Book a court</a>
+      <a href="#programmes">Programmes</a>
+      <a href="#news">News</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#contact">Contact</a>
+      <a href="auth.html" class="btn btn-primary btn-sm">Member login</a>
+    </div>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="hero-eyebrow">Rhodes Park, Kensington &middot; Johannesburg</div>
+      <h1>Six courts, open every day, all levels welcome.</h1>
+      <p class="lede">KenRho Park Tennis Club is a friendly community club at Rhodes Park in Kensington, Johannesburg. Courts are open seven days a week from 6am to 6pm, with social tennis every Saturday and Sunday from 7:30am and club teams competing in men's and women's leagues.</p>
+      <div class="hero-cta">
+        <a href="auth.html" class="btn btn-primary">Join the club</a>
+        <a href="#membership" class="btn btn-outline-light">See membership fees</a>
+      </div>
+    </div>
+    <div class="hero-art"><img src="assets/logo.png" alt="KenRho Park Tennis Club crest" /></div>
+  </div>
+</header>
+<div class="seam"></div>
+
+<section id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Welcome to KenRho Park.</h2>
+      <p class="lede">We're a tennis club in Kensington, Johannesburg, welcoming any level of player — from total beginners to competitive athletes. Our six courts are open seven days a week from 6am to 6pm, with parking available on site.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>Social tennis</h3>
+        <p class="muted">Every Saturday and Sunday from 7:30am — an open, friendly session for members of all standards.</p>
+      </div>
+      <div class="card">
+        <h3>League tennis</h3>
+        <p class="muted">The club enters teams into local leagues for both men and women each season.</p>
+      </div>
+      <div class="card">
+        <h3>Six courts, seven days a week</h3>
+        <p class="muted">Rhodes Park, 6 Langerman Drive, Kensington — open 6am to 6pm daily, with on-site parking.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="membership" class="section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Membership</h2>
+      <p class="lede">We encourage regular players to sign up for membership at our competitive rates. Day visitors are welcome too, at R50 per person — please note the club is cashless, with a card machine on site.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="plan featured">
+        <span class="tag">Join online</span>
+        <h3 class="mb-0">Fastest way in</h3>
+        <p class="muted">Sign in with Google, pay your membership fee by EFT or card, and upload your proof of payment — no paperwork, no waiting for a committee meeting.</p>
+        <a href="auth.html" class="btn btn-primary mt-16">Join the club online</a>
+      </div>
+      <div class="plan">
+        <span class="tag">Paper form</span>
+        <h3 class="mb-0">Prefer a form?</h3>
+        <p class="muted">Download and complete the official 2026 membership form and hand it to a committee member at the club.</p>
+        <a href="https://kenrhoparktennisclub.wordpress.com/wp-content/uploads/2026/01/2026-kenrho-membership-form-filliable.pdf" target="_blank" rel="noopener" class="btn btn-outline mt-16">Download membership form</a>
+      </div>
+      <div class="plan">
+        <span class="tag">Day visitor</span>
+        <h3 class="mb-0">R50 per person</h3>
+        <p class="muted">Just want a hit? Pay R50 per person for a court on the day. The club is cashless — a card machine is available on site.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="booking" class="section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Book a court</h2>
+      <p class="lede">See what's open, or sign in to book up to two weeks ahead. A free booking holds a slot for casual play. A paid booking guarantees it — even if that means bumping a free booking off that slot.</p>
+    </div>
+    <div class="flex-between mt-16" style="flex-wrap:wrap;gap:12px;">
+      <div class="pill-toggle" id="home-date-toggle"></div>
+      <a href="auth.html" class="btn btn-primary btn-sm">Sign in to book a court</a>
+    </div>
+    <div class="table-wrap mt-16">
+      <table id="home-availability-table" class="compact">
+        <thead><tr id="home-availability-head"><th>Court</th></tr></thead>
+        <tbody id="home-availability-body"></tbody>
+      </table>
+    </div>
+    <p class="muted small mt-16">
+      <span class="badge unpaid">free</span> = free booking &nbsp;&nbsp;
+      <span class="badge paid">paid</span> = paid &amp; secured &nbsp;&nbsp;
+      a blank cell is open
+    </p>
+  </div>
+</section>
+
+<section id="programmes">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Coaching</h2>
+      <p class="lede">Resident coach Pilate Ngwenya, head coach at Sweatennis Academy, is available to take on players at every level.</p>
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Private & group lessons</h3>
+        <p class="muted">Coach Pilate offers private and group lessons for children and adults, and runs the junior development squad at KenRho.</p>
+        <p class="muted mt-16">Coaching since 1996, a level 2 national coach and registered chair umpire, Coach Pilate has represented KenRho Park Tennis Club at various leagues and tournaments, and has been involved in development programmes including Get Ahead and Move It.</p>
+        <p class="mt-16 mb-0"><strong>Book a lesson:</strong> 076 433 0722 (WhatsApp) &middot; <a href="mailto:sweatennisacademy@gmail.com">sweatennisacademy@gmail.com</a></p>
+      </div>
+      <div class="card">
+        <h3>League & social play</h3>
+        <p class="muted">The club enters teams into local leagues for both men and women. Social tennis runs every Saturday and Sunday from 7:30am, open to members of every standard.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="news">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Club news</h2>
+      <p class="lede">Announcements from the committee. Tap "Read aloud" to have any notice read out to you.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>Court booking is here</h3>
+        <p id="news-1" class="muted">You can now book a court online — for free casual play, or with a paid booking that guarantees your slot. Sign in and head to "Book a court" to reserve up to two weeks ahead.</p>
+        <button class="btn btn-outline btn-sm mt-8" data-read-aloud="news-1">🔊 Read aloud</button>
+      </div>
+      <div class="card">
+        <h3>Social tennis this weekend</h3>
+        <p id="news-2" class="muted">Social tennis runs every Saturday and Sunday from 7:30am — open to all members, any standard of play welcome. Just arrive and join in.</p>
+        <button class="btn btn-outline btn-sm mt-8" data-read-aloud="news-2">🔊 Read aloud</button>
+      </div>
+      <div class="card">
+        <h3>Coaching bookings open</h3>
+        <p id="news-3" class="muted">Coach Pilate is taking bookings for private and group lessons, and for the junior development squad. WhatsApp 076 433 0722 to book your slot.</p>
+        <button class="btn btn-outline btn-sm mt-8" data-read-aloud="news-3">🔊 Read aloud</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gallery" class="section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Around the club</h2>
+      <p class="lede">Replace these placeholders with your own match-day and club-event photos any time.</p>
+    </div>
+    <div class="gallery">
+      <div style="background:linear-gradient(160deg,#3c7a2e,#1f3d1a)"></div>
+      <div style="background:linear-gradient(160deg,#a8cf3a,#3c7a2e)"></div>
+      <div style="background:linear-gradient(160deg,#1f3d1a,#14170f)"></div>
+      <div style="background:linear-gradient(160deg,#8ab52c,#1f3d1a)"></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="section-dark">
+  <div class="wrap">
+    <div class="grid grid-2">
+      <div>
+        <h2>Come play.</h2>
+        <p class="lede">Have a question before you join? Contact club secretary Rob.</p>
+        <p class="mt-24"><strong>Secretary:</strong> Rob &middot; 072 519 6875</p>
+        <p><strong>Email:</strong> <a href="mailto:kenrhoparktennisclub@gmail.com">kenrhoparktennisclub@gmail.com</a></p>
+        <p><strong>Find us:</strong> Rhodes Park, 6 Langerman Drive, Kensington, Johannesburg — open 6am&ndash;6pm daily, parking on site</p>
+        <p><a href="https://www.facebook.com/share/1DgzPfcyXP/?mibextid=wwXIfr" target="_blank" rel="noopener">Facebook</a> &middot; <a href="https://www.instagram.com/kenrhotennisclub?igsh=YnpjcXF6aHlraGoz&utm_source=qr" target="_blank" rel="noopener">Instagram</a></p>
+      </div>
+      <div class="card card-dark">
+        <h3>Ready to join?</h3>
+        <p class="muted">Sign in with your Google account, pay your membership fee, and upload your proof of payment — approval usually happens the same day.</p>
+        <a href="auth.html" class="btn btn-primary mt-16">Join the club</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="nav-brand" style="margin-bottom:10px;"><img src="assets/logo.png" alt="" style="height:34px;width:34px;" /><span style="font-family:var(--font-display);font-size:1.2rem;">KenRho Park</span></div>
+      <p class="muted" style="max-width:32ch;">A community tennis club for players of every age and level.</p>
+    </div>
+    <div>
+      <p><a href="auth.html">Member login</a></p>
+      <p><a href="#membership">Membership fees</a></p>
+      <p><a href="#contact">Contact</a></p>
+    </div>
+  </div>
+  <div class="wrap foot-small">&copy; <span id="year"></span> KenRho Park Tennis Club. All rights reserved.</div>
+</footer>
+
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/home-booking.js"></script>
+<script src="js/read-aloud.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
