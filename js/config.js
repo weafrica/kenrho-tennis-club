@@ -1,11 +1,5 @@
-// ============================================================================
-// Fill these in with your own Supabase project's values.
-// Find them in Supabase Dashboard > Project Settings > API.
-// The anon key is safe to expose in frontend code — Row Level Security
-// (see supabase/02_policies.sql) is what actually protects the data.
-// ============================================================================
 window.KENRHO_CONFIG = {
-  SUPABASE_URL: "https://YOUR-PROJECT-REF.supabase.co",
-  SUPABASE_ANON_KEY: "YOUR-ANON-PUBLIC-KEY",
+  SUPABASE_URL: "https://bwuhgmfalnplvzjtpjwx.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3dWhnbWZhbG5wbHZ6anRwand4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyODcwMjIsImV4cCI6MjEwNTg2MzAyMn0.H74SXP_R7ORriTreyatSL_Ae94LBcfaIoc2aqCJvU9M",
   CLUB_NAME: "KenRho Park Tennis Club",
 };
