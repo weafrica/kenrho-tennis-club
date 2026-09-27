@@ -1,7 +1,7 @@
 // KenRho Park Tennis Club — service worker
 // Bump this version whenever any cached file changes, so old caches are
 // dropped and clients pick up the new files.
-const CACHE_NAME = "kenrho-shell-v1";
+const CACHE_NAME = "kenrho-shell-v2";
 
 const SHELL_FILES = [
   "index.html",
@@ -11,7 +11,6 @@ const SHELL_FILES = [
   "admin.html",
   "offline.html",
   "css/styles.css",
-  "js/config.js",
   "js/supabaseClient.js",
   "js/site.js",
   "js/auth.js",
@@ -58,6 +57,13 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return; // never intercept writes
   const url = new URL(req.url);
   if (!isStaticShellRequest(url)) return; // let Supabase/CDN calls hit the network directly
+
+  // Config holds environment-specific values (Supabase URL/key) that can
+  // change after the app is already installed — never serve a cached copy.
+  if (url.pathname.endsWith("/js/config.js") || url.pathname === "/js/config.js") {
+    event.respondWith(fetch(req));
+    return;
+  }
 
   // Network-first for HTML so content updates show up immediately when
   // online; falls back to the cached shell (then an offline page) when not.
