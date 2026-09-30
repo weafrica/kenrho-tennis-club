@@ -434,8 +434,32 @@ async function renderBalanceSheet() {
     <p class="muted small mt-16">Tip: at each year-end, post a manual journal entry closing net income into "Club Equity / Retained Funds" (3000) so the balance sheet stays in balance going into the new year.</p>`;
 }
 
+// ---------------------------------------------------------------- membership fee categories
+async function loadMembershipTypesTable() {
+  const { data } = await window.sb.from("membership_types").select("*").order("sort_order");
+  const tbody = document.querySelector("#membership-types-table tbody");
+  tbody.innerHTML = "";
+  (data || []).forEach((t) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${t.name}</strong></td>
+      <td><input type="number" step="0.01" style="width:110px;" value="${t.fee}" data-mt-fee="${t.id}" /></td>
+      <td><input type="text" style="width:100%;" value="${t.note || ""}" data-mt-note="${t.id}" /></td>
+      <td class="right"><button class="btn btn-sm btn-outline" data-mt-save="${t.id}">Save</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+async function saveMembershipType(id) {
+  const fee = parseFloat(document.querySelector(`[data-mt-fee="${id}"]`).value);
+  const note = document.querySelector(`[data-mt-note="${id}"]`).value;
+  const { error } = await window.sb.from("membership_types").update({ fee, note }).eq("id", id);
+  if (error) return window.KR.toast(error.message, "error");
+  window.KR.toast("Membership fee updated.");
+}
+
 // ---------------------------------------------------------------- settings
 async function loadSettingsTab() {
+  await loadMembershipTypesTable();
   document.getElementById("set-club-name").value = CTX.settings.club_name;
   document.getElementById("set-fee").value = CTX.settings.membership_fee;
   document.getElementById("set-fee-label").value = CTX.settings.fee_period_label;
@@ -523,6 +547,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("is-end").addEventListener("change", renderIncomeStatement);
 
   document.getElementById("settings-form").addEventListener("submit", saveSettings);
+  document.querySelector("#membership-types-table").addEventListener("click", (e) => {
+    if (e.target.dataset.mtSave) saveMembershipType(e.target.dataset.mtSave);
+  });
 
   showTab("members");
 });

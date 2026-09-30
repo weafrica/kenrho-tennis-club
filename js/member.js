@@ -1,8 +1,71 @@
-let CTX = { session: null, profile: null, settings: null, logoDataUrl: null };
+let CTX = { session: null, profile: null, settings: null, logoDataUrl: null, membershipTypes: [] };
 
 async function loadSettings() {
   const { data } = await window.sb.from("settings").select("*").eq("id", 1).single();
   return data;
+}
+
+async function loadMembershipTypes() {
+  const { data } = await window.sb.from("membership_types").select("*").eq("is_active", true).order("sort_order");
+  return data || [];
+}
+
+function profileNeedsRegistration(p) {
+  return !p.membership_type_id || !p.date_of_birth || !p.residential_address;
+}
+
+function renderRegistrationCard() {
+  const card = document.getElementById("registration-card");
+  if (!profileNeedsRegistration(CTX.profile)) {
+    card.classList.add("hidden");
+    return;
+  }
+  card.classList.remove("hidden");
+  const sel = document.getElementById("reg-membership-type");
+  sel.innerHTML = CTX.membershipTypes
+    .map((t) => `<option value="${t.id}">${t.name} — ${window.KR.fmtMoney(t.fee, CTX.settings.currency)}/year${t.note ? " (" + t.note + ")" : ""}</option>`)
+    .join("");
+}
+
+async function submitRegistration(ev) {
+  ev.preventDefault();
+  const btn = document.getElementById("registration-submit-btn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Saving…`;
+  try {
+    const payload = {
+      membership_type_id: document.getElementById("reg-membership-type").value,
+      date_of_birth: document.getElementById("reg-dob").value,
+      phone: document.getElementById("reg-phone").value,
+      residential_address: document.getElementById("reg-address").value,
+      postal_code: document.getElementById("reg-postal").value,
+      previous_club: document.getElementById("reg-previous-club").value,
+      tennis_level: document.getElementById("reg-level").value,
+      played_league: document.getElementById("reg-played-league").value === "true",
+      photo_consent: document.getElementById("reg-photo-consent").checked,
+    };
+    const { error } = await window.sb.from("profiles").update(payload).eq("id", CTX.session.user.id);
+    if (error) throw error;
+    window.KR.toast("Details saved — you're all set to pay your membership fee below.");
+    await refreshProfile();
+    renderFeeCard();
+  } catch (err) {
+    window.KR.toast(err.message || "Could not save your details.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save my details";
+  }
+}
+
+function renderFeeCard() {
+  const myType = CTX.membershipTypes.find((t) => t.id === CTX.profile.membership_type_id);
+  if (myType) {
+    document.getElementById("fee-amount").textContent = window.KR.fmtMoney(myType.fee, CTX.settings.currency);
+    document.getElementById("fee-period").textContent = myType.name + " membership — annual";
+  } else {
+    document.getElementById("fee-amount").textContent = window.KR.fmtMoney(CTX.settings.membership_fee, CTX.settings.currency);
+    document.getElementById("fee-period").textContent = "Complete your registration above to see your exact fee";
+  }
 }
 
 function renderProfileHeader() {
@@ -97,7 +160,9 @@ async function loadReceipts() {
 function openPayModal(invoiceId) {
   const inv = (window.__invoiceCache || []).find((i) => i.id === invoiceId);
   document.getElementById("pay-invoice-id").value = invoiceId || "";
-  document.getElementById("pay-amount").value = inv ? (inv.amount - inv.amount_paid).toFixed(2) : CTX.settings.membership_fee;
+  const myType = CTX.membershipTypes.find((t) => t.id === CTX.profile.membership_type_id);
+  const defaultAmount = myType ? myType.fee : CTX.settings.membership_fee;
+  document.getElementById("pay-amount").value = inv ? (inv.amount - inv.amount_paid).toFixed(2) : defaultAmount;
   document.getElementById("pay-modal-title").textContent = inv ? `Upload proof for ${inv.invoice_number}` : "Upload proof of payment";
   document.getElementById("pay-modal").classList.remove("hidden");
 }
@@ -173,12 +238,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   CTX.session = guard.session;
   CTX.profile = guard.profile;
   CTX.settings = await loadSettings();
+  CTX.membershipTypes = await loadMembershipTypes();
   CTX.logoDataUrl = await window.KR_PDF.loadLogoDataUrl();
 
   renderProfileHeader();
-  document.getElementById("fee-amount").textContent = window.KR.fmtMoney(CTX.settings.membership_fee, CTX.settings.currency);
-  document.getElementById("fee-period").textContent = CTX.settings.fee_period_label;
+  renderRegistrationCard();
+  renderFeeCard();
   document.getElementById("bank-details").textContent = CTX.settings.bank_details;
+  document.getElementById("registration-form").addEventListener("submit", submitRegistration);
 
   await loadInvoices();
   await loadReceipts();

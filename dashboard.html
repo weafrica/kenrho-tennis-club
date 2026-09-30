@@ -40,9 +40,47 @@
       <div id="member-status-badge"></div>
     </div>
 
+    <div id="registration-card" class="card mt-24 hidden">
+      <h3>Complete your registration</h3>
+      <p class="muted small">Just like the paper application form — pick your membership category and fill in your details. Takes a minute.</p>
+      <form id="registration-form">
+        <div class="form-row">
+          <label>Membership category</label>
+          <select id="reg-membership-type" required></select>
+        </div>
+        <div class="form-grid">
+          <div class="form-row"><label>Date of birth</label><input type="date" id="reg-dob" required /></div>
+          <div class="form-row"><label>Phone number</label><input type="tel" id="reg-phone" required /></div>
+        </div>
+        <div class="form-row"><label>Residential address</label><input type="text" id="reg-address" required /></div>
+        <div class="form-grid">
+          <div class="form-row"><label>Postal code</label><input type="text" id="reg-postal" /></div>
+          <div class="form-row"><label>Previous tennis club (if any)</label><input type="text" id="reg-previous-club" /></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Tennis level</label>
+            <select id="reg-level"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select>
+          </div>
+          <div class="form-row">
+            <label>Have you played league before?</label>
+            <select id="reg-played-league"><option value="false">No</option><option value="true">Yes</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="flex gap-8" style="font-weight:500;">
+            <input type="checkbox" id="reg-photo-consent" style="width:auto;" />
+            I give permission for photographs of me at club premises or events to be shared on the club's social media pages, including WhatsApp groups.
+          </label>
+        </div>
+        <p class="muted small">By submitting, you confirm you've read the club's rules and regulations posted at the clubhouse and agree to abide by them, as well as the municipal by-laws of Rhodes Park.</p>
+        <button type="submit" id="registration-submit-btn" class="btn btn-primary">Save my details</button>
+      </form>
+    </div>
+
     <div class="grid grid-3 mt-24">
       <div class="stat">
-        <div class="label">Membership fee</div>
+        <div class="label">Your membership fee</div>
         <div class="value" id="fee-amount">—</div>
         <div class="muted small" id="fee-period">—</div>
       </div>
@@ -95,8 +133,9 @@
         <label>Payment method</label>
         <select id="pay-method">
           <option>EFT</option>
+          <option>Yoco card machine</option>
+          <option>Monthly stop order</option>
           <option>Cash</option>
-          <option>Card</option>
           <option>Other</option>
         </select>
       </div>

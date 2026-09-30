@@ -71,7 +71,25 @@ function renderDateToggle() {
   });
 }
 
+async function loadFeesTable() {
+  const table = document.getElementById("fees-table");
+  if (!table) return;
+  const { data: types } = await window.sb.from("membership_types").select("*").eq("is_active", true).order("sort_order");
+  const { data: settings } = await window.sb.from("settings").select("currency").eq("id", 1).single();
+  const currency = settings ? settings.currency : "ZAR";
+  const tbody = table.querySelector("tbody");
+  tbody.innerHTML = "";
+  (types || []).forEach((t) => {
+    const tr = document.createElement("tr");
+    const amount = new Intl.NumberFormat("en-ZA", { style: "currency", currency }).format(t.fee);
+    tr.innerHTML = `<td><strong>${t.name}</strong></td><td>${amount} / year</td><td class="muted">${t.note || "—"}</td>`;
+    tbody.appendChild(tr);
+  });
+  if (!types || !types.length) tbody.innerHTML = `<tr><td colspan="3" class="muted" style="text-align:center;padding:20px;">Fees unavailable right now — contact the secretary for current rates.</td></tr>`;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  loadFeesTable();
   if (!document.getElementById("home-availability-table")) return;
   HB.date = new Date().toISOString().slice(0, 10);
   renderDateToggle();
