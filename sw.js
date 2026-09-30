@@ -1,7 +1,7 @@
 // KenRho Park Tennis Club — service worker
 // Bump this version whenever any cached file changes, so old caches are
 // dropped and clients pick up the new files.
-const CACHE_NAME = "kenrho-shell-v2";
+const CACHE_NAME = "kenrho-shell-v3";
 
 const SHELL_FILES = [
   "index.html",
@@ -59,37 +59,32 @@ self.addEventListener("fetch", (event) => {
   if (!isStaticShellRequest(url)) return; // let Supabase/CDN calls hit the network directly
 
   // Config holds environment-specific values (Supabase URL/key) that can
-  // change after the app is already installed — never serve a cached copy.
-  if (url.pathname.endsWith("/js/config.js") || url.pathname === "/js/config.js") {
+  // change after the app is already installed — never even fall back to cache.
+  if (url.pathname.endsWith("/js/config.js")) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // Network-first for HTML so content updates show up immediately when
-  // online; falls back to the cached shell (then an offline page) when not.
-  if (req.mode === "navigate" || req.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(req).then((cached) => cached || caches.match("offline.html")))
-    );
-    return;
-  }
-
-  // Cache-first for static assets (css/js/images) — fast, and works offline.
+  // Network-first for EVERYTHING in the shell (HTML, JS, CSS, images alike).
+  // A stale cached copy of app code is far more dangerous for a live club
+  // management app (silently showing old behaviour) than the minor latency
+  // cost of checking the network first. The cache is purely a fallback for
+  // when there's no connection at all — never the default source.
   event.respondWith(
-    caches.match(req).then(
-      (cached) =>
-        cached ||
-        fetch(req).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
+    fetch(req)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+        return res;
+      })
+      .catch(() =>
+        caches.match(req).then((cached) => {
+          if (cached) return cached;
+          if (req.mode === "navigate" || req.headers.get("accept")?.includes("text/html")) {
+            return caches.match("offline.html");
+          }
+          return Response.error();
         })
-    )
+      )
   );
 });

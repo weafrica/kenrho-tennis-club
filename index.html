@@ -54,7 +54,8 @@
   <div class="wrap">
     <div class="section-head">
       <h2>Welcome to KenRho Park.</h2>
-      <p class="lede">We're a tennis club in Kensington, Johannesburg, welcoming any level of player — from total beginners to competitive athletes. Our six courts are open seven days a week from 6am to 6pm, with parking available on site.</p>
+      <p class="lede" id="about-lede">We're a tennis club in Kensington, Johannesburg, welcoming any level of player — from total beginners to competitive athletes. Our six courts are open seven days a week from 6am to 6pm, with parking available on site.</p>
+      <button class="btn btn-outline btn-sm" data-read-aloud="about-lede">🔊 Read aloud</button>
     </div>
     <div class="grid grid-3">
       <div class="card">
@@ -133,7 +134,8 @@
       <div class="card">
         <h3>Private & group lessons</h3>
         <p class="muted">Coach Pilate offers private and group lessons for children and adults, and runs the junior development squad at KenRho.</p>
-        <p class="muted mt-16">Coaching since 1996, a level 2 national coach and registered chair umpire, Coach Pilate has represented KenRho Park Tennis Club at various leagues and tournaments, and has been involved in development programmes including Get Ahead and Move It.</p>
+        <p class="muted mt-16" id="coach-bio">Coaching since 1996, a level 2 national coach and registered chair umpire, Coach Pilate has represented KenRho Park Tennis Club at various leagues and tournaments, and has been involved in development programmes including Get Ahead and Move It.</p>
+        <button class="btn btn-outline btn-sm" data-read-aloud="coach-bio">🔊 Read aloud</button>
         <p class="mt-16 mb-0"><strong>Book a lesson:</strong> 076 433 0722 (WhatsApp) &middot; <a href="mailto:sweatennisacademy@gmail.com">sweatennisacademy@gmail.com</a></p>
       </div>
       <div class="card">
@@ -150,22 +152,8 @@
       <h2>Club news</h2>
       <p class="lede">Announcements from the committee. Tap "Read aloud" to have any notice read out to you.</p>
     </div>
-    <div class="grid grid-3">
-      <div class="card">
-        <h3>Court booking is here</h3>
-        <p id="news-1" class="muted">You can now book a court online — for free casual play, or with a paid booking that guarantees your slot. Sign in and head to "Book a court" to reserve up to two weeks ahead.</p>
-        <button class="btn btn-outline btn-sm mt-8" data-read-aloud="news-1">🔊 Read aloud</button>
-      </div>
-      <div class="card">
-        <h3>Social tennis this weekend</h3>
-        <p id="news-2" class="muted">Social tennis runs every Saturday and Sunday from 7:30am — open to all members, any standard of play welcome. Just arrive and join in.</p>
-        <button class="btn btn-outline btn-sm mt-8" data-read-aloud="news-2">🔊 Read aloud</button>
-      </div>
-      <div class="card">
-        <h3>Coaching bookings open</h3>
-        <p id="news-3" class="muted">Coach Pilate is taking bookings for private and group lessons, and for the junior development squad. WhatsApp 076 433 0722 to book your slot.</p>
-        <button class="btn btn-outline btn-sm mt-8" data-read-aloud="news-3">🔊 Read aloud</button>
-      </div>
+    <div class="grid grid-3" id="news-container">
+      <div class="card"><p class="muted">Loading news…</p></div>
     </div>
   </div>
 </section>
@@ -176,7 +164,7 @@
       <h2>Around the club</h2>
       <p class="lede">Replace these placeholders with your own match-day and club-event photos any time.</p>
     </div>
-    <div class="gallery">
+    <div class="gallery" id="gallery-container">
       <div style="background:linear-gradient(160deg,#3c7a2e,#1f3d1a)"></div>
       <div style="background:linear-gradient(160deg,#a8cf3a,#3c7a2e)"></div>
       <div style="background:linear-gradient(160deg,#1f3d1a,#14170f)"></div>
@@ -198,8 +186,9 @@
       </div>
       <div class="card card-dark">
         <h3>Ready to join?</h3>
-        <p class="muted">Sign in with your Google account, pay your membership fee, and upload your proof of payment — approval usually happens the same day.</p>
-        <a href="auth.html" class="btn btn-primary mt-16">Join the club</a>
+        <p class="muted" id="join-blurb">Sign in with your Google account, pay your membership fee, and upload your proof of payment — approval usually happens the same day.</p>
+        <button class="btn btn-outline btn-sm" data-read-aloud="join-blurb">🔊 Read aloud</button>
+        <a href="auth.html" class="btn btn-primary mt-16" style="display:block;">Join the club</a>
       </div>
     </div>
   </div>
@@ -226,6 +215,8 @@
 <script src="js/supabaseClient.js"></script>
 <script src="js/site.js"></script>
 <script src="js/home-booking.js"></script>
+<script src="js/content.js"></script>
+<script src="js/support-widget.js"></script>
 <script src="js/read-aloud.js"></script>
 <script src="js/pwa.js"></script>
 </body>

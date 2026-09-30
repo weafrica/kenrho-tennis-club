@@ -16,11 +16,17 @@ window.KR_guard = async function (requiredRole) {
     window.location.href = "auth.html";
     return null;
   }
-  if (requiredRole === "staff" && !(profile && ["admin", "treasurer"].includes(profile.role))) {
+  const fullStaffRoles = ["admin", "treasurer", "secretary", "chairman"];
+  const contentRoles = [...fullStaffRoles, "committee"];
+  if (requiredRole === "staff" && !(profile && fullStaffRoles.includes(profile.role))) {
     window.location.href = "dashboard.html";
     return null;
   }
-  if (requiredRole === "approved" && profile && profile.status !== "approved" && !["admin","treasurer"].includes(profile.role)) {
+  if (requiredRole === "content" && !(profile && contentRoles.includes(profile.role))) {
+    window.location.href = "dashboard.html";
+    return null;
+  }
+  if (requiredRole === "approved" && profile && profile.status !== "approved" && !fullStaffRoles.includes(profile.role)) {
     window.location.href = "auth.html?status=" + profile.status;
     return null;
   }

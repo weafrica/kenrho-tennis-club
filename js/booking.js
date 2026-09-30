@@ -93,8 +93,10 @@ function closeBookModal() {
 
 async function submitBooking(ev) {
   ev.preventDefault();
-  if (CTX.profile.status !== "approved" && !["admin", "treasurer"].includes(CTX.profile.role)) {
-    window.KR.toast("Only approved members can book a court.", "error");
+  const type = document.getElementById("book-type").value;
+  const isApprovedOrStaff = CTX.profile.status === "approved" || !["member"].includes(CTX.profile.role);
+  if (type === "free" && !isApprovedOrStaff) {
+    window.KR.toast("Free bookings are a member perk — approved members only. Choose a paid booking to book as a guest.", "error");
     return;
   }
   const btn = document.getElementById("book-submit-btn");

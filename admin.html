@@ -27,6 +27,8 @@
     <a data-tab="receipts">Receipts <span id="pending-receipt-count" class="badge pending" style="margin-left:6px;"></span></a>
     <a data-tab="invoices">Invoices</a>
     <a data-tab="bookings">Court bookings</a>
+    <a data-tab="content">Content</a>
+    <a data-tab="help">Help messages <span id="open-help-count" class="badge pending" style="margin-left:6px;"></span></a>
     <a data-tab="journal">Journal &amp; ledger</a>
     <a data-tab="reports">Financial reports</a>
     <a data-tab="settings">Settings</a>
@@ -157,6 +159,43 @@
           <tbody></tbody>
         </table>
       </div>
+    </section>
+
+    <!-- ================= CONTENT ================= -->
+    <section id="tab-content" class="admin-tab hidden">
+      <div class="card">
+        <h3>Add an announcement</h3>
+        <form id="announcement-form">
+          <div class="form-row"><label>Title</label><input type="text" id="ann-title" required /></div>
+          <div class="form-row"><label>Message</label><textarea id="ann-body" rows="3" required></textarea></div>
+          <button class="btn btn-primary">Post announcement</button>
+        </form>
+      </div>
+      <div class="table-wrap mt-16">
+        <table id="announcements-table" class="compact">
+          <thead><tr><th>Title</th><th>Message</th><th>Active</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card mt-32">
+        <h3>Add a gallery photo</h3>
+        <p class="muted small">Shows on the homepage gallery. Keep photos under 5MB.</p>
+        <form id="gallery-form">
+          <div class="form-row"><label>Photo</label><input type="file" id="gallery-file" accept="image/*" required /></div>
+          <div class="form-row"><label>Caption (optional)</label><input type="text" id="gallery-caption" /></div>
+          <button class="btn btn-primary" id="gallery-submit-btn">Upload photo</button>
+        </form>
+      </div>
+      <div class="grid grid-3 mt-16" id="gallery-admin-container"></div>
+    </section>
+
+    <!-- ================= HELP MESSAGES ================= -->
+    <section id="tab-help" class="admin-tab hidden">
+      <h3>Open messages</h3>
+      <div id="open-messages-container"></div>
+      <h3 class="mt-32">Resolved messages</h3>
+      <div id="resolved-messages-container"></div>
     </section>
 
     <!-- ================= JOURNAL ================= -->

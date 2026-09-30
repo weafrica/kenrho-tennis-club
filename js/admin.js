@@ -11,6 +11,8 @@ function showTab(name) {
     receipts: loadReceipts,
     invoices: loadInvoicesAdmin,
     bookings: loadBookingsTab,
+    content: loadContentTab,
+    help: loadHelpTab,
     journal: loadJournalTab,
     reports: loadReports,
     settings: loadSettingsTab,
@@ -254,6 +256,131 @@ async function cancelBookingAdmin(id) {
   loadAdminBookings();
 }
 
+// ---------------------------------------------------------------- content (announcements + gallery)
+async function loadContentTab() {
+  const { data: anns } = await window.sb.from("announcements").select("*").order("sort_order");
+  const tbody = document.querySelector("#announcements-table tbody");
+  tbody.innerHTML = "";
+  (anns || []).forEach((a) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${a.title}</strong></td>
+      <td class="muted small">${a.body.slice(0, 80)}${a.body.length > 80 ? "…" : ""}</td>
+      <td>${a.is_active ? "Yes" : "No"}</td>
+      <td class="right">
+        <button class="btn btn-sm btn-outline" data-toggle-ann="${a.id}" data-active="${a.is_active}">${a.is_active ? "Hide" : "Show"}</button>
+        <button class="btn btn-sm btn-danger" data-delete-ann="${a.id}">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+
+  const { data: photos } = await window.sb.from("gallery_photos").select("*").order("sort_order");
+  const container = document.getElementById("gallery-admin-container");
+  container.innerHTML = "";
+  (photos || []).forEach((p) => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <img src="${p.url}" alt="${p.caption || ""}" style="width:100%;height:140px;object-fit:cover;border-radius:8px;" />
+      <p class="muted small mt-8 mb-0">${p.caption || "—"}</p>
+      <button class="btn btn-sm btn-danger mt-8" data-delete-photo="${p.id}">Remove</button>`;
+    container.appendChild(div);
+  });
+}
+
+async function createAnnouncement(ev) {
+  ev.preventDefault();
+  const title = document.getElementById("ann-title").value;
+  const body = document.getElementById("ann-body").value;
+  const { error } = await window.sb.from("announcements").insert({ title, body, created_by: CTX.session.user.id });
+  if (error) return window.KR.toast(error.message, "error");
+  window.KR.toast("Announcement posted.");
+  document.getElementById("announcement-form").reset();
+  loadContentTab();
+}
+async function toggleAnnouncement(id, currentlyActive) {
+  const { error } = await window.sb.from("announcements").update({ is_active: !currentlyActive }).eq("id", id);
+  if (error) return window.KR.toast(error.message, "error");
+  loadContentTab();
+}
+async function deleteAnnouncement(id) {
+  if (!confirm("Delete this announcement?")) return;
+  const { error } = await window.sb.from("announcements").delete().eq("id", id);
+  if (error) return window.KR.toast(error.message, "error");
+  loadContentTab();
+}
+
+async function uploadGalleryPhoto(ev) {
+  ev.preventDefault();
+  const file = document.getElementById("gallery-file").files[0];
+  const caption = document.getElementById("gallery-caption").value;
+  if (!file) return;
+  const btn = document.getElementById("gallery-submit-btn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Uploading…`;
+  try {
+    const path = `${Date.now()}_${file.name}`;
+    const { error: upErr } = await window.sb.storage.from("gallery").upload(path, file);
+    if (upErr) throw upErr;
+    const { data: pub } = window.sb.storage.from("gallery").getPublicUrl(path);
+    const { error } = await window.sb.from("gallery_photos").insert({ url: pub.publicUrl, caption, created_by: CTX.session.user.id });
+    if (error) throw error;
+    window.KR.toast("Photo uploaded.");
+    document.getElementById("gallery-form").reset();
+    loadContentTab();
+  } catch (err) {
+    window.KR.toast(err.message || "Upload failed.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Upload photo";
+  }
+}
+async function deleteGalleryPhoto(id) {
+  if (!confirm("Remove this photo?")) return;
+  const { error } = await window.sb.from("gallery_photos").delete().eq("id", id);
+  if (error) return window.KR.toast(error.message, "error");
+  loadContentTab();
+}
+
+// ---------------------------------------------------------------- help messages
+async function loadHelpTab() {
+  const { data } = await window.sb.from("support_messages").select("*").order("created_at", { ascending: false });
+  const open = (data || []).filter((m) => m.status === "open");
+  const resolved = (data || []).filter((m) => m.status === "resolved");
+  document.getElementById("open-help-count").textContent = open.length;
+
+  const render = (msgs, containerId, isOpen) => {
+    const container = document.getElementById(containerId);
+    if (!msgs.length) { container.innerHTML = `<p class="muted">Nothing here.</p>`; return; }
+    container.innerHTML = msgs.map((m) => `
+      <div class="card mt-16">
+        <div class="flex-between">
+          <strong>${m.name}</strong>
+          <span class="muted small">${window.KR.fmtDate(m.created_at)}</span>
+        </div>
+        <p class="muted small mb-0">${m.email || "No email given"}</p>
+        <p class="mt-8">${m.message}</p>
+        ${m.reply ? `<div class="alert alert-info"><strong>Reply:</strong> ${m.reply}</div>` : ""}
+        ${isOpen ? `
+          <textarea class="mt-8" rows="2" placeholder="Write a reply…" id="reply-${m.id}" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;"></textarea>
+          <button class="btn btn-sm btn-primary mt-8" data-reply="${m.id}">Send reply &amp; resolve</button>
+        ` : ""}
+      </div>`).join("");
+  };
+  render(open, "open-messages-container", true);
+  render(resolved, "resolved-messages-container", false);
+}
+async function replyToMessage(id) {
+  const reply = document.getElementById(`reply-${id}`).value;
+  if (!reply.trim()) return window.KR.toast("Write a reply first.", "error");
+  const { error } = await window.sb.from("support_messages").update({
+    reply, status: "resolved", replied_by: CTX.session.user.id, replied_at: new Date().toISOString(),
+  }).eq("id", id);
+  if (error) return window.KR.toast(error.message, "error");
+  window.KR.toast("Reply sent.");
+  loadHelpTab();
+}
+
 // ---------------------------------------------------------------- manual journal entries
 let manualLines = [];
 function renderManualLines() {
@@ -494,10 +621,11 @@ async function saveSettings(ev) {
 
 // ---------------------------------------------------------------- boot
 document.addEventListener("DOMContentLoaded", async () => {
-  const guard = await window.KR_guard("staff");
+  const guard = await window.KR_guard("content");
   if (!guard) return;
   CTX.session = guard.session;
   CTX.profile = guard.profile;
+  const isFullStaff = ["admin", "treasurer", "secretary", "chairman"].includes(CTX.profile.role);
 
   const { data: settings } = await window.sb.from("settings").select("*").eq("id", 1).single();
   CTX.settings = settings;
@@ -506,6 +634,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("admin-name").textContent = CTX.profile.full_name || CTX.profile.email;
   document.getElementById("btn-sign-out").addEventListener("click", window.KR_signOut);
+
+  // Committee members (content-editor tier) only get the Content tab —
+  // everything financial or member-management stays with full staff.
+  if (!isFullStaff) {
+    document.querySelectorAll('[data-tab]').forEach((el) => {
+      if (el.getAttribute("data-tab") !== "content") el.classList.add("hidden");
+    });
+  }
 
   document.querySelectorAll("[data-tab]").forEach((el) => el.addEventListener("click", () => showTab(el.getAttribute("data-tab"))));
 
@@ -547,9 +683,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("is-end").addEventListener("change", renderIncomeStatement);
 
   document.getElementById("settings-form").addEventListener("submit", saveSettings);
+  document.getElementById("announcement-form").addEventListener("submit", createAnnouncement);
+  document.querySelector("#announcements-table").addEventListener("click", (e) => {
+    if (e.target.dataset.toggleAnn) toggleAnnouncement(e.target.dataset.toggleAnn, e.target.dataset.active === "true");
+    if (e.target.dataset.deleteAnn) deleteAnnouncement(e.target.dataset.deleteAnn);
+  });
+  document.getElementById("gallery-form").addEventListener("submit", uploadGalleryPhoto);
+  document.getElementById("gallery-admin-container").addEventListener("click", (e) => {
+    if (e.target.dataset.deletePhoto) deleteGalleryPhoto(e.target.dataset.deletePhoto);
+  });
+  document.getElementById("open-messages-container").addEventListener("click", (e) => {
+    if (e.target.dataset.reply) replyToMessage(e.target.dataset.reply);
+  });
   document.querySelector("#membership-types-table").addEventListener("click", (e) => {
     if (e.target.dataset.mtSave) saveMembershipType(e.target.dataset.mtSave);
   });
 
-  showTab("members");
+  showTab(isFullStaff ? "members" : "content");
 });
