@@ -339,3 +339,19 @@ table.compact td,table.compact th{padding:8px 10px;font-size:0.85rem;}
   .reserve-ball,.reserve-dot::after{animation:none;}
   .reserve-btn,.reserve-btn span{transition:none;}
 }
+
+
+/* ============================================================================
+   Logo badge (dark backgrounds): the crest has dark text, so on the dark nav,
+   footer and green hero it sits on a cream circle like a club badge.
+   ============================================================================ */
+.nav-brand img{
+  background:var(--paper);border-radius:50%;padding:4px;object-fit:contain;
+  box-shadow:0 0 0 2px rgba(168,207,58,0.55);
+}
+.hero-art{
+  background:radial-gradient(circle at 50% 38%, #ffffff 0%, var(--paper) 62%, #e9efd2 100%);
+  border:6px solid rgba(255,255,255,0.28);
+  box-shadow:0 30px 60px rgba(0,0,0,0.28), 0 0 0 10px rgba(168,207,58,0.18);
+}
+.hero-art img{width:64%;filter:drop-shadow(0 8px 14px rgba(20,23,15,0.18));}
