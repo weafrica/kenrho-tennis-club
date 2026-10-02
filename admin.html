@@ -26,7 +26,6 @@
     <a data-tab="members" class="active">Members <span id="pending-count" class="badge pending" style="margin-left:6px;"></span></a>
     <a data-tab="receipts">Receipts <span id="pending-receipt-count" class="badge pending" style="margin-left:6px;"></span></a>
     <a data-tab="invoices">Invoices</a>
-    <a data-tab="bookings">Court bookings</a>
     <a data-tab="content">Content</a>
     <a data-tab="help">Help messages <span id="open-help-count" class="badge pending" style="margin-left:6px;"></span></a>
     <a data-tab="journal">Journal &amp; ledger</a>
@@ -108,54 +107,6 @@
       <div class="table-wrap">
         <table id="admin-invoices-table">
           <thead><tr><th>Invoice #</th><th>Member</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ================= BOOKINGS ================= -->
-    <section id="tab-bookings" class="admin-tab hidden">
-      <div class="card">
-        <h3>Book a court for a walk-in / day visitor</h3>
-        <p class="muted small">For someone paying at the gate without a member account. Choose a member instead if they're already registered.</p>
-        <form id="walkin-booking-form">
-          <div class="form-grid">
-            <div class="form-row">
-              <label>Court</label>
-              <select id="wb-court"></select>
-            </div>
-            <div class="form-row">
-              <label>Date</label>
-              <input type="date" id="wb-date" required />
-            </div>
-            <div class="form-row">
-              <label>Start time</label>
-              <select id="wb-time"></select>
-            </div>
-            <div class="form-row">
-              <label>Booking type</label>
-              <select id="wb-type"><option value="free">Free</option><option value="paid" selected>Paid</option></select>
-            </div>
-            <div class="form-row">
-              <label>Member (optional — leave blank for a guest)</label>
-              <select id="wb-member"><option value="">— Guest / day visitor —</option></select>
-            </div>
-            <div class="form-row">
-              <label>Guest name (if no member selected)</label>
-              <input type="text" id="wb-guest-name" placeholder="e.g. Jane Visitor" />
-            </div>
-          </div>
-          <button class="btn btn-primary">Create booking</button>
-        </form>
-      </div>
-
-      <div class="flex-between mt-32">
-        <h3>Bookings</h3>
-        <div class="form-row mb-0"><input type="date" id="ab-date" /></div>
-      </div>
-      <div class="table-wrap">
-        <table id="admin-bookings-table" class="compact">
-          <thead><tr><th>Court</th><th>Time</th><th>Booked by</th><th>Type</th><th>Payment</th><th>Status</th><th></th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -310,13 +261,6 @@
               <input type="checkbox" id="set-auto-approve" style="width:auto;" />
               Auto-approve members as soon as they upload proof of payment (skip manual admin review of the membership status — receipts are still listed as "pending" for you to verify financially)
             </label>
-          </div>
-          <h3 class="mt-24">Court bookings</h3>
-          <div class="form-grid">
-            <div class="form-row"><label>Paid court fee (per hour)</label><input type="number" step="0.01" id="set-court-fee" /></div>
-            <div class="form-row"><label>Book how many days ahead</label><input type="number" id="set-booking-days" /></div>
-            <div class="form-row"><label>Courts open from</label><input type="time" id="set-open-time" /></div>
-            <div class="form-row"><label>Courts open until</label><input type="time" id="set-close-time" /></div>
           </div>
           <button class="btn btn-primary">Save settings</button>
         </form>

@@ -23,7 +23,7 @@
     <div class="nav-links" id="nav-links">
       <a href="#about">About</a>
       <a href="#membership">Membership</a>
-      <a href="#booking">Book a court</a>
+      <a href="https://kenrho.vercel.app/reservations" class="nav-reserve">Reserve a court</a>
       <a href="#programmes">Programmes</a>
       <a href="#news">News</a>
       <a href="#gallery">Gallery</a>
@@ -43,6 +43,7 @@
       <div class="hero-cta">
         <a href="auth.html" class="btn btn-primary">Join the club</a>
         <a href="#membership" class="btn btn-outline-light">See membership fees</a>
+        <a href="https://kenrho.vercel.app/reservations" class="btn btn-outline-light">Reserve a court</a>
       </div>
     </div>
     <div class="hero-art"><img src="assets/logo.png" alt="KenRho Park Tennis Club crest" /></div>
@@ -100,27 +101,28 @@
   </div>
 </section>
 
-<section id="booking" class="section-alt">
+<section id="booking" class="reserve-section">
   <div class="wrap">
-    <div class="section-head">
-      <h2>Book a court</h2>
-      <p class="lede">See what's open, or sign in to book up to two weeks ahead. A free booking holds a slot for casual play. A paid booking guarantees it — even if that means bumping a free booking off that slot.</p>
+    <div class="reserve-banner">
+      <div class="reserve-copy">
+        <span class="reserve-pill"><span class="reserve-dot"></span> Online reservations now open</span>
+        <h2>Reserve your court in seconds.</h2>
+        <p class="reserve-lede">Pick a court, choose your time and lock it in on our new reservations page. Six courts, seven days a week, 6am to 6pm.</p>
+        <div class="reserve-actions">
+          <a class="btn btn-primary reserve-btn" href="https://kenrho.vercel.app/reservations">Reserve a court <span aria-hidden="true">&rarr;</span></a>
+          <span class="reserve-note">Takes you to our reservations page</span>
+        </div>
+      </div>
+      <div class="reserve-art" aria-hidden="true">
+        <div class="reserve-court">
+          <span class="rc-line rc-net"></span>
+          <span class="rc-line rc-s1"></span>
+          <span class="rc-line rc-s2"></span>
+          <span class="rc-line rc-mid"></span>
+        </div>
+        <div class="reserve-ball"></div>
+      </div>
     </div>
-    <div class="flex-between mt-16" style="flex-wrap:wrap;gap:12px;">
-      <div class="pill-toggle" id="home-date-toggle"></div>
-      <a href="auth.html" class="btn btn-primary btn-sm">Sign in to book a court</a>
-    </div>
-    <div class="table-wrap mt-16">
-      <table id="home-availability-table" class="compact">
-        <thead><tr id="home-availability-head"><th>Court</th></tr></thead>
-        <tbody id="home-availability-body"></tbody>
-      </table>
-    </div>
-    <p class="muted small mt-16">
-      <span class="badge unpaid">free</span> = free booking &nbsp;&nbsp;
-      <span class="badge paid">paid</span> = paid &amp; secured &nbsp;&nbsp;
-      a blank cell is open
-    </p>
   </div>
 </section>
 
@@ -214,7 +216,6 @@
 <script src="js/config.js"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/site.js"></script>
-<script src="js/home-booking.js"></script>
 <script src="js/content.js"></script>
 <script src="js/support-widget.js"></script>
 <script src="js/read-aloud.js"></script>

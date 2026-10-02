@@ -249,3 +249,93 @@ table.compact td,table.compact th{padding:8px 10px;font-size:0.85rem;}
 .muted{color:#666;font-size:0.88rem;}
 .small{font-size:0.85rem;}
 .right{text-align:right;}
+
+/* ============================================================================
+   Court reservations banner (homepage)
+   ============================================================================ */
+.reserve-section{padding:64px 0;background:var(--paper);}
+.reserve-banner{
+  position:relative;isolation:isolate;overflow:hidden;
+  display:grid;grid-template-columns:1.35fr 1fr;gap:32px;align-items:center;
+  padding:56px 56px;border-radius:24px;color:var(--paper);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(168,207,58,0.38), transparent 46%),
+    radial-gradient(circle at 0% 100%, rgba(168,207,58,0.14), transparent 40%),
+    linear-gradient(135deg, var(--pine) 0%, var(--forest) 68%, var(--lime-dark) 150%);
+  box-shadow:0 28px 56px rgba(31,61,26,0.30);
+}
+.reserve-banner::before{
+  content:"";position:absolute;inset:0;z-index:-1;opacity:0.5;
+  background-image:repeating-linear-gradient(115deg, rgba(255,255,255,0.045) 0 2px, transparent 2px 26px);
+}
+.reserve-pill{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);
+  color:var(--lime);font-weight:600;font-size:0.85rem;letter-spacing:0.03em;
+  padding:7px 16px;border-radius:999px;margin-bottom:18px;backdrop-filter:blur(4px);
+}
+.reserve-dot{width:9px;height:9px;border-radius:50%;background:var(--lime);position:relative;}
+.reserve-dot::after{
+  content:"";position:absolute;inset:0;border-radius:50%;background:var(--lime);
+  animation:reserve-pulse 1.8s ease-out infinite;
+}
+@keyframes reserve-pulse{0%{transform:scale(1);opacity:0.7;}100%{transform:scale(3.2);opacity:0;}}
+.reserve-copy h2{font-size:clamp(2.2rem,5vw,3.6rem);margin-bottom:0.3em;}
+.reserve-lede{font-size:1.1rem;color:rgba(251,251,244,0.86);max-width:46ch;margin-bottom:1.6em;}
+.reserve-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.reserve-btn{
+  font-size:1.05rem;padding:16px 30px;
+  box-shadow:0 10px 24px rgba(168,207,58,0.35);
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.reserve-btn span{display:inline-block;transition:transform .18s ease;}
+.reserve-btn:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(168,207,58,0.5);}
+.reserve-btn:hover span{transform:translateX(5px);}
+.reserve-note{font-size:0.85rem;color:rgba(251,251,244,0.65);}
+
+.reserve-art{position:relative;min-height:260px;display:flex;align-items:center;justify-content:center;}
+.reserve-court{
+  position:relative;width:100%;max-width:270px;aspect-ratio:3/4;
+  border:3px solid rgba(255,255,255,0.9);border-radius:6px;
+  background:rgba(255,255,255,0.08);
+  transform:perspective(720px) rotateX(26deg) rotateZ(-9deg);
+  box-shadow:0 30px 40px rgba(0,0,0,0.28);
+}
+.reserve-court::before,.reserve-court::after{
+  content:"";position:absolute;top:0;bottom:0;width:3px;background:rgba(255,255,255,0.9);
+}
+.reserve-court::before{left:11%;}
+.reserve-court::after{right:11%;}
+.rc-line{position:absolute;background:rgba(255,255,255,0.9);}
+.rc-net{left:-9%;right:-9%;top:50%;height:4px;margin-top:-2px;background:var(--lime);box-shadow:0 0 14px rgba(168,207,58,0.8);}
+.rc-s1{left:11%;right:11%;top:24%;height:3px;}
+.rc-s2{left:11%;right:11%;bottom:24%;height:3px;}
+.rc-mid{left:50%;top:24%;bottom:24%;width:3px;margin-left:-1px;}
+
+.reserve-ball{
+  position:absolute;right:4%;bottom:6%;width:74px;height:74px;border-radius:50%;overflow:hidden;
+  background:radial-gradient(circle at 30% 28%, #dcf47e, var(--lime) 55%, var(--lime-dark));
+  box-shadow:0 16px 26px rgba(0,0,0,0.38);
+  animation:reserve-bounce 2.4s ease-in-out infinite;
+}
+.reserve-ball::before,.reserve-ball::after{
+  content:"";position:absolute;top:0;width:100%;height:100%;border-radius:50%;
+  border:3px solid rgba(255,255,255,0.88);
+}
+.reserve-ball::before{left:-64%;}
+.reserve-ball::after{left:64%;}
+@keyframes reserve-bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-22px);}}
+
+.nav-links a.nav-reserve{color:var(--lime);font-weight:600;}
+.nav-links a.nav-reserve:hover{color:var(--paper);}
+
+@media (max-width:860px){
+  .reserve-banner{grid-template-columns:1fr;padding:38px 26px;text-align:left;}
+  .reserve-art{min-height:200px;order:-1;}
+  .reserve-court{max-width:190px;}
+  .reserve-ball{width:56px;height:56px;right:12%;}
+}
+@media (prefers-reduced-motion:reduce){
+  .reserve-ball,.reserve-dot::after{animation:none;}
+  .reserve-btn,.reserve-btn span{transition:none;}
+}

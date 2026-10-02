@@ -163,31 +163,10 @@ split later.
 
 ---
 
-## 6. Court booking
+## 6. Court reservations
 
-`booking.html` lets approved members book any of the six courts up to a
-configurable number of days ahead (default 14, set in Admin → Settings).
-Every booking is one of:
-
-- **Free** — holds the slot for casual play, no payment needed.
-- **Paid** — guarantees the slot, at the configured hourly court fee, and
-  **can bump an existing free booking off that slot**. A paid booking can
-  never be bumped by anything.
-
-All of this is enforced server-side in a single Postgres function
-(`create_booking` in `supabase/04_courts_and_bookings.sql`), not just in the
-frontend, so it can't be bypassed. Paid bookings go through the same
-upload-proof → admin-verifies → journal-entry flow as membership fees,
-posting to the **Court Hire Revenue** account (4200) instead of Membership
-Revenue. The homepage shows a public, identity-free "what's booked today"
-grid via a `get_availability()` function that never exposes who booked a
-slot — only whether it's free, paid, or open.
-
-Admins can also book on behalf of a walk-in / day visitor with no account
-(Admin → Court bookings), and cancel any booking.
-
-**Run `supabase/04_courts_and_bookings.sql` after the other three SQL
-files** to add this feature to an existing project.
+Court booking is handled on a separate reservations site: <https://kenrho.vercel.app/reservations>.
+The homepage shows a banner and a nav link pointing there; there is no booking code in this repo any more.
 
 ---
 

@@ -10,7 +10,6 @@ function showTab(name) {
     members: loadMembers,
     receipts: loadReceipts,
     invoices: loadInvoicesAdmin,
-    bookings: loadBookingsTab,
     content: loadContentTab,
     help: loadHelpTab,
     journal: loadJournalTab,
@@ -164,96 +163,6 @@ async function viewProof(path) {
   const { data, error } = await window.sb.storage.from("receipts").createSignedUrl(path, 60 * 5);
   if (error) return window.KR.toast(error.message, "error");
   window.open(data.signedUrl, "_blank");
-}
-
-// ---------------------------------------------------------------- bookings
-function timeSlots(open, close) {
-  const out = [];
-  let [h] = open.split(":").map(Number);
-  const [endH] = close.split(":").map(Number);
-  while (h < endH) { out.push(String(h).padStart(2, "0") + ":00"); h += 1; }
-  return out;
-}
-function addHour(t) {
-  const [h, m] = t.split(":").map(Number);
-  return String(h + 1).padStart(2, "0") + ":" + String(m).padStart(2, "0");
-}
-function fmtSlot(t) {
-  const [h] = t.split(":").map(Number);
-  const ampm = h >= 12 ? "pm" : "am";
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}${ampm}`;
-}
-
-async function loadBookingsTab() {
-  const { data: courts } = await window.sb.from("courts").select("*").eq("is_active", true).order("sort_order");
-  document.getElementById("wb-court").innerHTML = (courts || []).map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
-  document.getElementById("wb-time").innerHTML = timeSlots(CTX.settings.booking_open_time, CTX.settings.booking_close_time)
-    .map((s) => `<option value="${s}">${fmtSlot(s)}</option>`).join("");
-
-  const { data: members } = await window.sb.from("profiles").select("id, full_name, email").eq("status", "approved").order("full_name");
-  document.getElementById("wb-member").innerHTML =
-    `<option value="">— Guest / day visitor —</option>` + (members || []).map((m) => `<option value="${m.id}">${m.full_name || m.email}</option>`).join("");
-
-  if (!document.getElementById("ab-date").value) document.getElementById("ab-date").value = new Date().toISOString().slice(0, 10);
-  if (!document.getElementById("wb-date").value) document.getElementById("wb-date").value = new Date().toISOString().slice(0, 10);
-  await loadAdminBookings();
-}
-
-async function createWalkinBooking(ev) {
-  ev.preventDefault();
-  const court_id = document.getElementById("wb-court").value;
-  const date = document.getElementById("wb-date").value;
-  const start = document.getElementById("wb-time").value;
-  const type = document.getElementById("wb-type").value;
-  const member_id = document.getElementById("wb-member").value || null;
-  const guest_name = document.getElementById("wb-guest-name").value || null;
-  if (!date) return window.KR.toast("Pick a date.", "error");
-  if (!member_id && !guest_name) return window.KR.toast("Pick a member or enter a guest name.", "error");
-
-  const { error } = await window.sb.rpc("create_booking", {
-    p_court_id: court_id, p_date: date, p_start: start, p_end: addHour(start),
-    p_type: type, p_member_id: member_id, p_guest_name: guest_name,
-    p_amount: CTX.settings.court_fee_per_hour,
-  });
-  if (error) return window.KR.toast(error.message, "error");
-  window.KR.toast("Booking created.");
-  document.getElementById("walkin-booking-form").reset();
-  document.getElementById("ab-date").value = date;
-  loadAdminBookings();
-}
-
-async function loadAdminBookings() {
-  const date = document.getElementById("ab-date").value;
-  const { data } = await window.sb
-    .from("bookings")
-    .select("*, courts(name), profiles(full_name,email)")
-    .eq("booking_date", date)
-    .order("start_time");
-  const tbody = document.querySelector("#admin-bookings-table tbody");
-  tbody.innerHTML = "";
-  (data || []).forEach((b) => {
-    const who = b.profiles ? (b.profiles.full_name || b.profiles.email) : (b.guest_name || "—");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${b.courts ? b.courts.name : "—"}</td>
-      <td>${fmtSlot(b.start_time.slice(0,5))}&ndash;${fmtSlot(b.end_time.slice(0,5))}</td>
-      <td>${who}</td>
-      <td>${window.KR.badge(b.type)}</td>
-      <td>${b.type === "paid" ? window.KR.badge(b.payment_status) : "—"}</td>
-      <td>${window.KR.badge(b.status)}</td>
-      <td class="right">${b.status === "confirmed" ? `<button class="btn btn-sm btn-outline" data-cancel-booking="${b.id}">Cancel</button>` : ""}</td>`;
-    tbody.appendChild(tr);
-  });
-  if (!data || data.length === 0) tbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center;padding:20px;">No bookings for this date.</td></tr>`;
-}
-
-async function cancelBookingAdmin(id) {
-  if (!confirm("Cancel this booking?")) return;
-  const { error } = await window.sb.rpc("cancel_booking", { p_booking_id: id });
-  if (error) return window.KR.toast(error.message, "error");
-  window.KR.toast("Booking cancelled.");
-  loadAdminBookings();
 }
 
 // ---------------------------------------------------------------- content (announcements + gallery)
@@ -593,10 +502,6 @@ async function loadSettingsTab() {
   document.getElementById("set-currency").value = CTX.settings.currency;
   document.getElementById("set-bank").value = CTX.settings.bank_details;
   document.getElementById("set-auto-approve").checked = !CTX.settings.require_admin_approval;
-  document.getElementById("set-court-fee").value = CTX.settings.court_fee_per_hour;
-  document.getElementById("set-booking-days").value = CTX.settings.booking_days_ahead;
-  document.getElementById("set-open-time").value = CTX.settings.booking_open_time;
-  document.getElementById("set-close-time").value = CTX.settings.booking_close_time;
 }
 async function saveSettings(ev) {
   ev.preventDefault();
@@ -607,10 +512,6 @@ async function saveSettings(ev) {
     currency: document.getElementById("set-currency").value,
     bank_details: document.getElementById("set-bank").value,
     require_admin_approval: !document.getElementById("set-auto-approve").checked,
-    court_fee_per_hour: parseFloat(document.getElementById("set-court-fee").value),
-    booking_days_ahead: parseInt(document.getElementById("set-booking-days").value, 10),
-    booking_open_time: document.getElementById("set-open-time").value,
-    booking_close_time: document.getElementById("set-close-time").value,
     updated_at: new Date().toISOString(),
   };
   const { error } = await window.sb.from("settings").update(payload).eq("id", 1);
@@ -661,11 +562,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("invoice-form").addEventListener("submit", createInvoice);
-  document.getElementById("walkin-booking-form").addEventListener("submit", createWalkinBooking);
-  document.getElementById("ab-date").addEventListener("change", loadAdminBookings);
-  document.querySelector("#admin-bookings-table").addEventListener("click", (e) => {
-    if (e.target.dataset.cancelBooking) cancelBookingAdmin(e.target.dataset.cancelBooking);
-  });
   document.getElementById("manual-add-line").addEventListener("click", addManualLine);
   document.getElementById("btn-post-manual").addEventListener("click", postManualEntry);
   document.querySelector("#manual-lines-table").addEventListener("click", (e) => {
