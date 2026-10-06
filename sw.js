@@ -1,7 +1,7 @@
 // KenRho Park Tennis Club — service worker
 // Bump this version whenever any cached file changes, so old caches are
 // dropped and clients pick up the new files.
-const CACHE_NAME = "kenrho-shell-v5";
+const CACHE_NAME = "kenrho-shell-v6";
 
 const SHELL_FILES = [
   "index.html",
@@ -20,11 +20,11 @@ const SHELL_FILES = [
   "js/pwa.js",
   "assets/logo.png",
   "assets/logo-mark.png",
-  "icons/icon-192.png",
-  "icons/icon-512.png",
-  "icons/maskable-512.png",
-  "icons/apple-touch-icon.png",
-  "icons/favicon-32.png",
+  "icons/kr-icon-192.png",
+  "icons/kr-icon-512.png",
+  "icons/kr-maskable-512.png",
+  "icons/kr-apple-180.png",
+  "icons/kr-favicon-32.png",
   "manifest.webmanifest",
 ];
 

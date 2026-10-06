@@ -1,5 +1,5 @@
 {
-  "id": "/",
+  "id": "/index.html",
   "name": "KenRho Park Tennis Club",
   "short_name": "KenRho Park",
   "description": "Membership, payments and court reservations for KenRho Park Tennis Club.",
@@ -16,19 +16,19 @@
   ],
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icons/kr-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/kr-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/maskable-512.png",
+      "src": "icons/kr-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -41,8 +41,9 @@
       "url": "/auth.html",
       "icons": [
         {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192"
+          "src": "icons/kr-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -52,8 +53,9 @@
       "url": "/dashboard.html",
       "icons": [
         {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192"
+          "src": "icons/kr-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
