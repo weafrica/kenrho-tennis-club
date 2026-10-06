@@ -1,16 +1,61 @@
 {
+  "id": "/",
   "name": "KenRho Park Tennis Club",
   "short_name": "KenRho Park",
-  "description": "Book courts, manage your membership, and pay your fees at KenRho Park Tennis Club.",
+  "description": "Membership, payments and court reservations for KenRho Park Tennis Club.",
+  "lang": "en-ZA",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#fbfbf4",
+  "background_color": "#1f3d1a",
   "theme_color": "#1f3d1a",
+  "categories": [
+    "sports",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Member login",
+      "short_name": "Login",
+      "url": "/auth.html",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "My membership",
+      "short_name": "Membership",
+      "url": "/dashboard.html",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

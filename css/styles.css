@@ -355,3 +355,74 @@ table.compact td,table.compact th{padding:8px 10px;font-size:0.85rem;}
   box-shadow:0 30px 60px rgba(0,0,0,0.28), 0 0 0 10px rgba(168,207,58,0.18);
 }
 .hero-art img{width:64%;filter:drop-shadow(0 8px 14px rgba(20,23,15,0.18));}
+
+
+/* ============================================================================
+   Mobile polish & brand v2
+   ============================================================================ */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{-webkit-tap-highlight-color:transparent;overflow-x:hidden;}
+a,button,.btn,input,select,textarea,label,summary{touch-action:manipulation;}
+:focus-visible{outline:3px solid var(--lime-dark);outline-offset:2px;border-radius:4px;}
+
+/* notched phones / installed app: keep content clear of the status bar & home bar */
+.nav,.app-nav{padding-top:env(safe-area-inset-top);}
+footer{padding-bottom:calc(28px + env(safe-area-inset-bottom));}
+.app-main{padding-bottom:calc(80px + env(safe-area-inset-bottom));}
+.wrap{padding-left:max(24px,env(safe-area-inset-left));padding-right:max(24px,env(safe-area-inset-right));}
+
+/* crest badge: the mark is small and clean, so a slim ring is enough */
+.nav-brand img{padding:3px;}
+
+@media (max-width:820px){
+  .wrap{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right));}
+  section{padding:52px 0;}
+  .section-head{margin-bottom:28px;}
+  .lede{font-size:1.05rem;}
+
+  /* nav */
+  .nav .wrap{height:64px;}
+  .nav-brand span{font-size:1.3rem;}
+  .nav-toggle{width:46px;height:46px;font-size:1.7rem;}
+  .nav-links{top:calc(64px + env(safe-area-inset-top));max-height:calc(100vh - 64px);overflow-y:auto;gap:0;padding:6px 18px 22px;}
+  .nav-links a{width:100%;padding:15px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:1.05rem;}
+  .nav-links a.btn{margin-top:16px;border-bottom:0;justify-content:center;}
+
+  /* hero */
+  .hero .wrap{padding-top:34px;padding-bottom:64px;gap:26px;}
+  .hero-cta{flex-direction:column;}
+  .hero-cta .btn{width:100%;justify-content:center;}
+  .hero-art{max-width:240px;}
+
+  /* touch-sized controls, and 16px inputs so iOS doesn't zoom the page on focus */
+  .btn{min-height:46px;justify-content:center;}
+  .btn-sm{min-height:40px;padding:9px 16px;}
+  input,select,textarea{font-size:16px !important;}
+  .form-row input,.form-row select,.form-row textarea{padding:13px 14px;}
+  .pill-toggle button{padding:10px 16px;}
+
+  /* member + admin app screens */
+  .app-nav .wrap{flex-wrap:wrap;gap:10px;}
+  .app-nav .tabs{overflow-x:auto;flex-wrap:nowrap;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+  .app-nav .tabs::-webkit-scrollbar{display:none;}
+  .app-nav .tabs a{white-space:nowrap;padding:11px 14px;flex:0 0 auto;}
+  .app-main{padding-top:24px;}
+  .stat .value{font-size:1.8rem;}
+  .card{padding:22px;}
+  .flex-between{flex-wrap:wrap;gap:10px;}
+  table th,table td{padding:10px;}
+  .t-body{grid-template-columns:1fr;}
+  .t-body .col.debit{border-right:0;border-bottom:2px solid var(--ink);}
+
+  /* modals become bottom sheets */
+  .modal-backdrop{align-items:flex-end;padding:0;}
+  .modal{max-width:none;border-radius:18px 18px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));}
+  .center-card{margin:28px auto;padding:30px 22px;}
+
+  footer .wrap{flex-direction:column;}
+  .gallery{gap:10px;}
+}
+@media (max-width:420px){
+  h1{font-size:2.4rem;}
+  .reserve-btn{width:100%;justify-content:center;}
+}
