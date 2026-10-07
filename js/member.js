@@ -215,6 +215,60 @@ async function submitPayment(ev) {
   }
 }
 
+async function loadStanding() {
+  const card = document.getElementById("standing-card");
+  if (!card) return;
+  try {
+    const { data, error } = await window.sb.rpc("my_standing");
+    const s = !error && data && data.length ? data[0] : null;
+    if (!s) { card.classList.add("hidden"); return; }
+    const money = (n) => window.KR.fmtMoney(n, CTX.settings.currency);
+    const body = document.getElementById("standing-body");
+    const pill = document.getElementById("standing-pill");
+    card.classList.remove("hidden");
+
+    const expected = Number(s.expected_amount) || 0;
+    const paid = Number(s.paid_amount) || 0;
+    const balance = Number(s.balance) || 0;
+    const pct = expected > 0 ? Math.max(0, Math.min(100, Math.round((paid / expected) * 100))) : 100;
+
+    let tone, label, msg;
+    if (balance > 0.005) {
+      tone = "owing"; label = "Balance owing";
+      msg = `Your balance for 2026 is <strong>${money(balance)}</strong>. Pay using the bank details below and upload your proof of payment.`;
+    } else if (balance < -0.005) {
+      tone = "credit"; label = "In good standing";
+      msg = `Your membership is in good standing, and you are <strong>${money(-balance)}</strong> in credit. Thank you!`;
+    } else {
+      tone = "paid"; label = "In good standing";
+      msg = "Your 2026 membership is in good standing and fully paid. Thank you!";
+    }
+    // the treasurer's sheet had something to double-check for this member
+    const check = !s.confirmed && balance > 0.005
+      ? `<p class="muted small">If you have already paid this, please upload your proof of payment below or speak to the treasurer and we will update your record.</p>` : "";
+
+    pill.textContent = label;
+    pill.className = "standing-pill standing-pill-" + tone;
+
+    body.innerHTML = `
+      <div class="standing-grid">
+        <div><div class="standing-label">${s.membership_type || "Membership"} fee</div><div class="standing-value">${money(expected)}</div></div>
+        <div><div class="standing-label">Paid so far</div><div class="standing-value">${money(paid)}</div></div>
+        <div><div class="standing-label">${balance < -0.005 ? "Credit" : "Balance"}</div><div class="standing-value standing-${tone}">${money(Math.abs(balance))}</div></div>
+      </div>
+      <div class="standing-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
+      <p class="standing-msg">${msg}</p>
+      ${check}
+      ${s.last_payment_date ? `<p class="muted small mb-0">Last payment recorded: ${window.KR.fmtDate(s.last_payment_date)}${s.member_no ? " · Member no. " + s.member_no : ""}</p>` : (s.member_no ? `<p class="muted small mb-0">Member no. ${s.member_no}</p>` : "")}`;
+
+    // keep the fee tile consistent with the treasurer's figure
+    const fee = document.getElementById("fee-amount");
+    if (fee && expected > 0) fee.textContent = money(expected);
+  } catch (e) {
+    card.classList.add("hidden");
+  }
+}
+
 async function refreshProfile() {
   const { data } = await window.sb.from("profiles").select("*").eq("id", CTX.session.user.id).single();
   CTX.profile = data;
@@ -249,6 +303,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadInvoices();
   await loadReceipts();
+  await loadStanding();
 
   document.getElementById("btn-pay-general").addEventListener("click", () => openPayModal(null));
   document.getElementById("pay-form").addEventListener("submit", submitPayment);

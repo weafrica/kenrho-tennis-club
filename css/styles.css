@@ -426,3 +426,36 @@ footer{padding-bottom:calc(28px + env(safe-area-inset-bottom));}
   h1{font-size:2.4rem;}
   .reserve-btn{width:100%;justify-content:center;}
 }
+
+/* ============================================================================
+   Member account standing card
+   ============================================================================ */
+.standing-card{
+  position:relative;overflow:hidden;border-radius:20px;padding:26px 28px;color:var(--paper);
+  background:radial-gradient(circle at 92% 8%, rgba(168,207,58,0.32), transparent 48%),
+             linear-gradient(135deg, var(--pine), var(--forest));
+  box-shadow:0 18px 40px rgba(31,61,26,0.22);
+}
+.standing-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+.standing-eyebrow{font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--lime);font-weight:600;}
+.standing-card h3{color:var(--paper);margin:2px 0 0;}
+.standing-pill{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:600;font-size:0.82rem;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.3);}
+.standing-pill-paid{background:var(--lime);color:var(--ink);border-color:transparent;}
+.standing-pill-credit{background:var(--lime);color:var(--ink);border-color:transparent;}
+.standing-pill-owing{background:#ffe3a3;color:#5a3b00;border-color:transparent;}
+.standing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px;}
+.standing-label{font-size:0.82rem;color:rgba(251,251,244,0.72);margin-bottom:2px;}
+.standing-value{font-family:var(--font-display);font-size:2rem;line-height:1.1;letter-spacing:0.02em;}
+.standing-owing{color:#ffd77a;}
+.standing-credit{color:#a9dcf5;}
+.standing-paid{color:var(--lime);}
+.standing-bar{height:10px;border-radius:999px;background:rgba(255,255,255,0.18);overflow:hidden;margin-bottom:14px;}
+.standing-bar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg, var(--lime), #d9f27a);}
+.standing-msg{margin:0 0 8px;}
+.standing-card .muted{color:rgba(251,251,244,0.7);}
+@media (max-width:640px){
+  .standing-card{padding:22px 18px;}
+  .standing-grid{grid-template-columns:1fr 1fr;}
+  .standing-grid > div:last-child{grid-column:1 / -1;}
+  .standing-value{font-size:1.7rem;}
+}
