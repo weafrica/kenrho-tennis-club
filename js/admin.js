@@ -19,6 +19,65 @@ function showTab(name) {
   if (loaders[name]) loaders[name]();
 }
 
+// ---------------------------------------------------------------- family requests
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+async function loadFamilyRequests() {
+  const wrap = document.getElementById("family-requests-wrap");
+  if (!wrap) return;
+  const { data: reqs, error } = await window.sb.from("family_link_requests").select("*").eq("status", "pending").order("created_at");
+  if (error || !reqs || reqs.length === 0) { wrap.classList.add("hidden"); document.getElementById("family-request-count").textContent = ""; return; }
+  wrap.classList.remove("hidden");
+  document.getElementById("family-request-count").textContent = reqs.length;
+  const ids = reqs.map((r) => r.profile_id);
+  const { data: people } = await window.sb.from("profiles").select("id, full_name, email").in("id", ids);
+  const { data: families } = await window.sb.from("treasurer_standing").select("id, full_name, member_no").eq("membership_type_code", "family").order("full_name");
+  const byId = {}; (people || []).forEach((p) => (byId[p.id] = p));
+  const famName = {}; (families || []).forEach((f) => (famName[f.id] = f.full_name));
+  const tbody = document.querySelector("#family-requests-table tbody");
+  tbody.innerHTML = "";
+  reqs.forEach((r) => {
+    const p = byId[r.profile_id] || {};
+    const opts = [`<option value="">— pick the family —</option>`]
+      .concat((families || []).map((f) => `<option value="${esc(f.id)}"${f.id === r.standing_id ? " selected" : ""}>${esc(f.full_name)}${f.member_no ? " (" + esc(f.member_no) + ")" : ""}</option>`)).join("");
+    const said = r.standing_id
+      ? `Picked from the list:<br><strong>${esc(famName[r.standing_id] || r.typed_family)}</strong>`
+      : `<span class="muted small">Family not listed</span>`;
+    const contact = r.standing_id
+      ? `<span class="muted small">—</span>`
+      : `<strong>${esc(r.payer_name)}</strong><br><span class="small">${r.contact_phone ? esc(r.contact_phone) : ""}${r.contact_phone && r.contact_email ? "<br>" : ""}${r.contact_email ? esc(r.contact_email) : ""}</span>`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${esc(p.full_name || "—")}</strong><br><span class="muted small">${esc(p.email || "")}</span></td>
+      <td>${said}</td>
+      <td>${contact}</td>
+      <td><select class="fam-req-select" data-fam-select="${esc(r.id)}">${opts}</select></td>
+      <td class="right">
+        <button class="btn btn-sm btn-primary" data-fam-confirm="${esc(r.id)}">Confirm</button>
+        <button class="btn btn-sm btn-danger" data-fam-reject="${esc(r.id)}">Reject</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+async function confirmFamily(id) {
+  const sel = document.querySelector(`[data-fam-select="${id}"]`);
+  if (!sel || !sel.value) return window.KR.toast("Pick the family record first.", "error");
+  const { data, error } = await window.sb.rpc("admin_confirm_family", { p_request_id: id, p_standing_id: sel.value });
+  if (error) return window.KR.toast(error.message, "error");
+  if (data !== "confirmed") return window.KR.toast(data || "Could not confirm.", "error");
+  window.KR.toast("Confirmed. They are approved and can now see the family's balance.");
+  loadMembers();
+}
+async function rejectFamily(id) {
+  const note = prompt("Reason (shown to the member):", "We couldn't match this to a family on our list.");
+  if (note === null) return;
+  const { error } = await window.sb.rpc("admin_reject_family", { p_request_id: id, p_note: note });
+  if (error) return window.KR.toast(error.message, "error");
+  window.KR.toast("Request rejected.");
+  loadMembers();
+}
+
 // ---------------------------------------------------------------- members
 async function loadMembers() {
   const { data } = await window.sb.from("profiles").select("*").order("joined_at", { ascending: false });
@@ -49,6 +108,7 @@ async function loadMembers() {
     allBody.appendChild(tr2);
   });
   document.getElementById("pending-count").textContent = (data || []).filter((m) => m.status === "pending").length;
+  await loadFamilyRequests();
 }
 
 async function setMemberStatus(id, status) {
@@ -546,6 +606,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll("[data-tab]").forEach((el) => el.addEventListener("click", () => showTab(el.getAttribute("data-tab"))));
 
+  document.getElementById("family-requests-table").addEventListener("click", (e) => {
+    if (e.target.dataset.famConfirm) confirmFamily(e.target.dataset.famConfirm);
+    if (e.target.dataset.famReject) rejectFamily(e.target.dataset.famReject);
+  });
   document.querySelector("#pending-members-table").addEventListener("click", (e) => {
     if (e.target.dataset.approve) setMemberStatus(e.target.dataset.approve, "approved");
     if (e.target.dataset.reject) setMemberStatus(e.target.dataset.reject, "rejected");

@@ -23,8 +23,9 @@ function renderRegistrationCard() {
   card.classList.remove("hidden");
   const sel = document.getElementById("reg-membership-type");
   sel.innerHTML = CTX.membershipTypes
-    .map((t) => `<option value="${t.id}">${t.name} — ${window.KR.fmtMoney(t.fee, CTX.settings.currency)}/year${t.note ? " (" + t.note + ")" : ""}</option>`)
+    .map((t) => `<option value="${t.id}"${t.id === CTX.profile.membership_type_id ? " selected" : ""}>${t.name} — ${window.KR.fmtMoney(t.fee, CTX.settings.currency)}/year${t.note ? " (" + t.note + ")" : ""}</option>`)
     .join("");
+  if (window.KR_family) window.KR_family.init();
 }
 
 async function submitRegistration(ev) {
@@ -33,6 +34,8 @@ async function submitRegistration(ev) {
   btn.disabled = true;
   btn.innerHTML = `<span class="spinner"></span> Saving…`;
   try {
+    // Family category: send the "which family?" request first; stop if it isn't valid
+    if (window.KR_family && !(await window.KR_family.submitFromForm())) return;
     const payload = {
       membership_type_id: document.getElementById("reg-membership-type").value,
       date_of_birth: document.getElementById("reg-dob").value,
@@ -304,6 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadInvoices();
   await loadReceipts();
   await loadStanding();
+  if (window.KR_family) window.KR_family.afterLoad();
 
   document.getElementById("btn-pay-general").addEventListener("click", () => openPayModal(null));
   document.getElementById("pay-form").addEventListener("submit", submitPayment);

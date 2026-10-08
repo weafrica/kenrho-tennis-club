@@ -50,6 +50,7 @@
           <label>Membership category</label>
           <select id="reg-membership-type" required></select>
         </div>
+        <div id="family-block" class="family-block hidden"></div>
         <div class="form-grid">
           <div class="form-row"><label>Date of birth</label><input type="date" id="reg-dob" required /></div>
           <div class="form-row"><label>Phone number</label><input type="tel" id="reg-phone" required /></div>
@@ -78,6 +79,14 @@
         <p class="muted small">By submitting, you confirm you've read the club's rules and regulations posted at the clubhouse and agree to abide by them, as well as the municipal by-laws of Rhodes Park.</p>
         <button type="submit" id="registration-submit-btn" class="btn btn-primary">Save my details</button>
       </form>
+    </div>
+
+    <div id="family-card" class="card mt-24 hidden">
+      <h3>Link to your family membership</h3>
+      <p class="muted small">Your family pays one membership fee. Tell us which family you belong to and the treasurer will confirm it, then your family's balance shows here.</p>
+      <div id="family-card-body"></div>
+      <div id="family-card-status"></div>
+      <button type="button" id="family-card-submit" class="btn btn-primary mt-8">Send to the treasurer</button>
     </div>
 
     <div id="standing-card" class="standing-card mt-24 hidden">
@@ -174,6 +183,7 @@
 <script src="js/supabaseClient.js"></script>
 <script src="js/site.js"></script>
 <script src="js/invoice.js"></script>
+<script src="js/family-link.js"></script>
 <script src="js/member.js"></script>
 <script src="js/support-widget.js"></script>
 <script src="js/pwa.js"></script>
