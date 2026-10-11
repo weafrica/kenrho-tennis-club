@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Invoices &amp; receipts — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .dg { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:20px; align-items:start; }
+  @media (max-width:960px){ .dg{ grid-template-columns:1fr; } }
+  .step { background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .step h3 { margin:0 0 10px; display:flex; align-items:center; gap:10px; font-size:1.02rem; }
+  .step h3 i { width:26px; height:26px; border-radius:50%; background:#3c7a2e; color:#fff; font-style:normal; display:inline-flex; align-items:center; justify-content:center; font-size:.85rem; }
+  .step label { display:block; font-size:.8rem; color:#555; margin:8px 0 3px; }
+  .step input[type=text], .step input[type=number], .step input[type=date], .step select { width:100%; padding:10px 11px; border:1.5px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .seg { display:inline-flex; border:1.5px solid #3c7a2e; border-radius:10px; overflow:hidden; }
+  .seg button { padding:10px 20px; border:0; background:#fff; font:inherit; font-weight:600; cursor:pointer; color:#2a5a1f; }
+  .seg button.on { background:#3c7a2e; color:#fff; }
+  .pills { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .pills button { padding:8px 14px; border-radius:999px; border:1.5px solid var(--line); background:#fff; font:inherit; cursor:pointer; }
+  .pills button.on { background:#3c7a2e; border-color:#3c7a2e; color:#fff; }
+  .li { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+  .li input[type=text] { flex:1; min-width:0; } .li input.fee { width:96px; flex:none; } .li input.k { width:36%; flex:none; }
+  .li input[type=checkbox] { width:20px; height:20px; flex:none; }
+  .x { border:0; background:#fdecea; color:#b23b2e; width:32px; height:32px; border-radius:8px; font-size:1.1rem; cursor:pointer; flex:none; }
+  .addbtn { border:1.5px dashed #3c7a2e; background:#f4faee; color:#2a5a1f; border-radius:8px; padding:8px 12px; font:inherit; cursor:pointer; margin-top:4px; }
+  .hint { font-size:.82rem; background:#eef6d9; border-radius:8px; padding:8px 10px; margin-top:8px; }
+  .hint button { margin-left:8px; }
+  .pvwrap { position:sticky; top:12px; }
+  .paper { background:#fff; border:1px solid #ccc; padding:16px; font:12px/1.5 Arial,Helvetica,sans-serif; color:#000; box-shadow:0 6px 24px rgba(0,0,0,.12); }
+  .pv-head { display:flex; border:1px solid #000; margin-bottom:10px; } .pv-logo { width:74px; border-right:1px solid #000; padding:4px; display:flex; align-items:center; } .pv-logo img { max-width:100%; }
+  .pv-title { flex:1; text-align:center; font-weight:700; padding:8px; }
+  .pv-row { display:flex; gap:6px; margin:4px 0; } .pv-k { white-space:nowrap; } .pv-v { flex:1; border-bottom:1px solid #999; min-height:1.2em; }
+  .pv-h { font-weight:700; margin-top:10px; } .u { text-decoration:underline; }
+  .pv-t { width:100%; border-collapse:collapse; margin:4px 0; } .pv-t th,.pv-t td { border:1px solid #000; padding:3px 6px; text-align:left; } .pv-t .c { text-align:center; }
+  .pv-gap { margin-top:14px; }
+  .actionbar { position:sticky; bottom:0; background:#fff; border-top:1px solid var(--line); padding:12px 0; display:flex; gap:10px; flex-wrap:wrap; z-index:5; }
+  .tabs2 { display:flex; gap:8px; margin:6px 0 16px; } .tabs2 button { padding:9px 16px; border:0; border-bottom:3px solid transparent; background:none; font:inherit; font-weight:600; cursor:pointer; } .tabs2 button.on { border-color:#3c7a2e; color:#2a5a1f; }
+  @media print { body * { visibility:hidden; } #preview-paper, #preview-paper * { visibility:visible; } #preview-paper { position:absolute; left:0; top:0; width:100%; border:0; box-shadow:none; } }
+</style>
+</head>
+<body class="app-shell">
+<div class="app-nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
+    <div class="flex gap-16">
+      <span class="muted small" id="who">—</span>
+      <a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a>
+      <button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button>
+    </div>
+  </div>
+  <div class="wrap tabs mt-16">
+    <a href="admin.html">Members</a>
+    <a href="admin-sheet.html">Membership sheet</a>
+    <a class="active">Invoices &amp; receipts</a>
+  </div>
+</div>
+
+<main class="app-main"><div class="wrap" style="max-width:1300px;">
+  <div class="tabs2"><button id="tab-create" class="on">Create</button><button id="tab-saved">Saved documents</button></div>
+
+  <section id="p-create">
+    <div class="flex-between" style="flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+      <div class="seg"><button id="seg-invoice" class="on">New invoice</button><button id="seg-receipt">New receipt</button></div>
+      <div style="min-width:280px;"><select id="use-existing" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;"><option value="">Or start from an existing invoice / receipt…</option></select></div>
+    </div>
+
+    <div class="dg">
+      <div id="form">
+        <div class="step"><h3><i>1</i> Who is it for?</h3>
+          <label>Member name — pick from the sheet, or type a new name</label>
+          <input type="text" id="f-name" list="members-dl" placeholder="Start typing a name…" autocomplete="off" />
+          <datalist id="members-dl"></datalist>
+          <div id="hint" class="hint hidden"></div>
+          <div class="two">
+            <div><label>Membership number</label><input type="text" id="f-memno" /></div>
+            <div><label>Date</label><input type="date" id="f-date" /></div>
+          </div>
+          <label id="lbl-number">Invoice number (automatic, you can change it)</label><input type="text" id="f-number" />
+        </div>
+
+        <div class="step"><h3><i>2</i> What is it for?</h3>
+          <label>Membership category</label><div class="pills" id="cat-pills"></div>
+          <label style="margin-top:14px">Fees — tick what applies. Edit, remove or add lines as needed.</label>
+          <div id="fees-list"></div><button class="addbtn" data-add="fees">+ Add a fee line</button>
+          <label style="margin-top:12px" id="lbl-override">Different total? (leave empty to use the ticked fees)</label>
+          <input type="number" step="0.01" id="f-override" placeholder="e.g. 750" />
+        </div>
+
+        <div class="step" id="blk-receipt"><h3><i>3</i> Payment received</h3>
+          <div class="two">
+            <div><label>Amount paid (R)</label><input type="number" step="0.01" id="f-paid" /></div>
+            <div><label>Paid by</label><select id="f-method"><option>EFT</option><option>Yoco Machine (Clubhouse)</option><option>Monthly Stop Order</option><option>Other</option></select></div>
+          </div>
+          <label>Reference used</label><input type="text" id="f-ref" placeholder="e.g. John Smith League" />
+          <label style="display:flex;gap:8px;align-items:center;margin-top:12px;"><input type="checkbox" id="rec-sheet" style="width:auto" /> <span id="rec-sheet-lbl">Also add this payment to the member's Paid amount on the Membership sheet</span></label>
+        </div>
+
+        <div class="step" id="blk-invoice"><h3><i>3</i> How to pay</h3>
+          <label>Payment details — edit, remove or add lines</label>
+          <div id="pay-list"></div><button class="addbtn" data-add="pay">+ Add a detail</button>
+          <label style="margin-top:14px">Payment methods offered</label>
+          <div id="methods-list"></div><button class="addbtn" data-add="methods">+ Add a method</button>
+        </div>
+
+        <div class="step"><h3><i>4</i> Notes</h3>
+          <div id="notes-list"></div><button class="addbtn" data-add="notes">+ Add a note</button>
+        </div>
+
+        <div class="step"><h3><i>5</i> Treasurer</h3>
+          <label>Treasurer name</label><input type="text" id="f-treasurer" />
+          <label>Contact line</label><input type="text" id="f-contact" />
+        </div>
+      </div>
+
+      <div class="pvwrap">
+        <div class="muted small" style="margin-bottom:6px;">Live preview — this is exactly what the PDF will look like</div>
+        <div class="paper" id="preview-paper"><div id="preview"></div></div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" id="btn-to-receipt">Make a receipt from this invoice</button>
+          <button class="btn btn-outline btn-sm" id="btn-reset">Reset to template</button>
+          <button class="btn btn-danger btn-sm hidden" id="btn-delete">Delete this document</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actionbar">
+      <button class="btn btn-primary" id="btn-save-pdf">Save &amp; download PDF</button>
+      <button class="btn btn-outline" id="btn-save">Save</button>
+      <button class="btn btn-outline" id="btn-print">Print</button>
+      <button class="btn btn-outline" id="btn-new">Start a blank one</button>
+      <span class="muted small" id="state-msg" style="align-self:center;"></span>
+    </div>
+  </section>
+
+  <section id="p-saved" class="hidden">
+    <div class="flex-between" style="flex-wrap:wrap;gap:12px;margin-bottom:10px;">
+      <h2 class="mb-0">Saved documents</h2>
+      <input type="search" id="saved-q" placeholder="Search number or name…" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;min-width:240px;" />
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Number</th><th>Type</th><th>Name</th><th>Category</th><th>Date</th><th class="right">Amount</th><th></th></tr></thead>
+      <tbody id="saved-body"></tbody>
+    </table></div>
+  </section>
+</div></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/invoice.js"></script>
+<script src="js/doc-pdf.js"></script>
+<script src="js/admin-documents.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

@@ -638,6 +638,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   if (CTX.profile.role === "treasurer" || (CTX.profile.email || "").toLowerCase() === "saulestoo@gmail.com") {
     document.getElementById("tab-sheet-link").classList.remove("hidden");
+    document.getElementById("tab-docs-link").classList.remove("hidden");
   }
   document.getElementById("manual-add-line").addEventListener("click", addManualLine);
   document.getElementById("btn-post-manual").addEventListener("click", postManualEntry);
