@@ -1,7 +1,7 @@
 // KenRho Park Tennis Club — service worker
 // Bump this version whenever any cached file changes, so old caches are
 // dropped and clients pick up the new files.
-const CACHE_NAME = "kenrho-shell-v9";
+const CACHE_NAME = "kenrho-shell-v10";
 
 const SHELL_FILES = [
   "index.html",

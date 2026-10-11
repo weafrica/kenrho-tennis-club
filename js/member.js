@@ -303,6 +303,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderFeeCard();
   document.getElementById("bank-details").textContent = CTX.settings.bank_details;
   document.getElementById("registration-form").addEventListener("submit", submitRegistration);
+  if (["admin", "treasurer", "secretary", "chairman", "committee"].includes(CTX.profile.role)) {
+    document.getElementById("tab-admin-link").classList.remove("hidden");
+  }
 
   await loadInvoices();
   await loadReceipts();
