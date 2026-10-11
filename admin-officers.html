@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Officers — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .og { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; }
+  .oc { background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .oc h3 { margin:0 0 4px; } .oc .holder { margin:10px 0; padding:10px 12px; background:#eef6d9; border-radius:8px; }
+  .oc .vacant { background:#fff6e0; }
+  .oc input[type=text], .oc input[type=email] { width:100%; padding:10px 11px; border:1.5px solid var(--line); border-radius:8px; font:inherit; }
+  .li2 { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #eee; }
+  .li2:last-child { border-bottom:0; }
+</style>
+</head>
+<body class="app-shell">
+<div class="app-nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
+    <div class="flex gap-16">
+      <span class="muted small" id="who">—</span>
+      <a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a>
+      <button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button>
+    </div>
+  </div>
+  <div class="wrap tabs mt-16"><a href="admin.html">Members</a><a class="active">Officers</a></div>
+</div>
+<main class="app-main"><div class="wrap">
+  <h2 class="mb-0">Officers &amp; committee</h2>
+  <p class="muted">Appoint the chairman, secretary, treasurer and committee members. Only the club account can do this. The person types their email below; if they haven't signed up yet they get the role the first time they sign in.</p>
+  <datalist id="people-dl"></datalist>
+  <div class="og" id="grid"><div class="muted">Loading…</div></div>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/admin-officers.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

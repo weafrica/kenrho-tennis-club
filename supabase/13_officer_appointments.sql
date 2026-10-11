@@ -1,0 +1,5 @@
+-- Applied to the live project as migration "officer_appointments".
+-- The club account (kenrhoparktennisclub@gmail.com) and Saul appoint officers via appoint_officer().
+-- Also: staff_roles now has Row Level Security on (it was open to anyone with the public key),
+-- and a trigger stops anyone changing roles / approving themselves by editing their own profile.
+-- See the Supabase project's migration history "officer_appointments" for the full SQL.

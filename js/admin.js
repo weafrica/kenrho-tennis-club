@@ -103,7 +103,6 @@ async function loadMembers() {
       <td>${m.role}</td>
       <td class="right">
         ${m.status !== "suspended" ? `<button class="btn btn-sm btn-outline" data-suspend="${m.id}">Suspend</button>` : `<button class="btn btn-sm btn-outline" data-approve="${m.id}">Reinstate</button>`}
-        ${m.role === "member" ? `<button class="btn btn-sm btn-outline" data-make-staff="${m.id}">Make treasurer</button>` : ""}
       </td>`;
     allBody.appendChild(tr2);
   });
@@ -639,6 +638,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (CTX.profile.role === "treasurer" || (CTX.profile.email || "").toLowerCase() === "saulestoo@gmail.com") {
     document.getElementById("tab-sheet-link").classList.remove("hidden");
     document.getElementById("tab-docs-link").classList.remove("hidden");
+  }
+  if (CTX.profile.role === "admin" && ["kenrhoparktennisclub@gmail.com", "saulestoo@gmail.com"].includes((CTX.profile.email || "").toLowerCase())) {
+    document.getElementById("tab-officers-link").classList.remove("hidden");
   }
   document.getElementById("manual-add-line").addEventListener("click", addManualLine);
   document.getElementById("btn-post-manual").addEventListener("click", postManualEntry);
