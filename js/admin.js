@@ -144,7 +144,8 @@ async function loadInvoicesAdmin() {
       <td>${inv.profiles ? inv.profiles.full_name || inv.profiles.email : "—"}</td>
       <td>${inv.description}</td>
       <td>${window.KR.fmtMoney(inv.amount, CTX.settings.currency)}</td>
-      <td>${window.KR.badge(inv.status)}</td>`;
+      <td>${window.KR.badge(inv.status)}</td>
+      <td class="right"><button class="btn btn-sm btn-outline" data-dl-invoice="${inv.id}">PDF</button></td>`;
     tbody.appendChild(tr);
   });
 }
@@ -159,11 +160,12 @@ async function createInvoice(ev) {
 
   const { data: numRow } = await window.sb.rpc("next_invoice_number");
   const invoice_number = numRow;
-  const { error } = await window.sb.from("invoices").insert({
+  const { data: newInv, error } = await window.sb.from("invoices").insert({
     invoice_number, member_id, description, amount, due_date, created_by: CTX.session.user.id,
-  });
+  }).select().single();
   if (error) return window.KR.toast(error.message, "error");
   window.KR.toast("Invoice created and posted to the ledger.");
+  if (newInv) window.KR_adminDocs.invoice(newInv.id);
   document.getElementById("invoice-form").reset();
   loadInvoicesAdmin();
 }
@@ -199,7 +201,8 @@ async function loadReceipts() {
       <td>${r.receipt_number || "—"}</td><td>${memberLabel}</td>
       <td>${window.KR.fmtMoney(r.amount, CTX.settings.currency)}</td>
       <td>${window.KR.fmtDate(r.submitted_at)}</td>
-      <td>${window.KR.badge(r.status)}</td>`;
+      <td>${window.KR.badge(r.status)}</td>
+      <td class="right">${r.status === "verified" ? `<button class="btn btn-sm btn-outline" data-dl-receipt="${r.id}">PDF</button>` : ""}</td>`;
     allBody.appendChild(tr2);
   });
   document.getElementById("pending-receipt-count").textContent = (data || []).filter((r) => r.status === "pending").length;
@@ -209,6 +212,7 @@ async function verifyReceipt(id) {
   const { error } = await window.sb.rpc("verify_receipt", { p_receipt_id: id, p_admin_id: CTX.session.user.id });
   if (error) return window.KR.toast(error.message, "error");
   window.KR.toast("Receipt verified, journal entry posted, invoice updated.");
+  window.KR_adminDocs.receipt(id);
   loadReceipts();
 }
 async function rejectReceipt(id) {
@@ -626,6 +630,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("invoice-form").addEventListener("submit", createInvoice);
+  document.getElementById("admin-invoices-table").addEventListener("click", (e) => {
+    if (e.target.dataset.dlInvoice) window.KR_adminDocs.invoice(e.target.dataset.dlInvoice);
+  });
+  document.getElementById("all-receipts-table").addEventListener("click", (e) => {
+    if (e.target.dataset.dlReceipt) window.KR_adminDocs.receipt(e.target.dataset.dlReceipt);
+  });
+  if (CTX.profile.role === "treasurer" || (CTX.profile.email || "").toLowerCase() === "saulestoo@gmail.com") {
+    document.getElementById("tab-sheet-link").classList.remove("hidden");
+  }
   document.getElementById("manual-add-line").addEventListener("click", addManualLine);
   document.getElementById("btn-post-manual").addEventListener("click", postManualEntry);
   document.querySelector("#manual-lines-table").addEventListener("click", (e) => {
