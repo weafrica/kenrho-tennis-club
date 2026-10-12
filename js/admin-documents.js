@@ -251,5 +251,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
-  await newDoc("invoice"); await loadSaved();
+  const qp = new URLSearchParams(location.search), sid = qp.get("standing");
+  await newDoc(qp.get("type") === "receipt" ? "receipt" : "invoice"); await loadSaved();
+  const pre = sid && ST.find((r) => r.id === sid);
+  if (pre) {
+    applyMember(pre);
+    const amt = qp.get("amount");
+    if (amt) { if (S.type === "receipt") S.paid = amt; else S.override = amt; }
+    syncInputs(); dirty = false; history.replaceState(null, "", location.pathname);
+  }
 });

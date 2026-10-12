@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Club Shop — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<style>
+  :root { --pine:#1f3d1a; --grass:#3c7a2e; --lime:#d6f08a; --gold:#D4A017; --bg:#f6f8f1; --card:#fff; --line:#dfe6d3; --text:#1b2a17; --dim:#5d6b57; --faint:#8a9684; --red:#c4293a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#10190e; --card:#192416; --line:#2b3c27; --text:#eef4e8; --dim:#aab8a3; --faint:#7d8c77; } }
+  * { box-sizing:border-box; } html,body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  body { padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+  header { background:var(--pine); color:#fff; position:sticky; top:0; z-index:30; padding-top:env(safe-area-inset-top,0px); }
+  .hd { max-width:960px; margin:0 auto; display:flex; align-items:center; gap:10px; padding:10px 14px; }
+  .hd img { width:34px; height:34px; border-radius:8px; background:#fff; padding:2px; } .hd .t { font-weight:800; letter-spacing:.02em; flex:1; line-height:1.1; } .hd .t small { display:block; font-weight:500; opacity:.75; font-size:.72rem; }
+  .ib { position:relative; width:38px; height:38px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:1.05rem; text-decoration:none; }
+  .ib.on { background:var(--lime); color:var(--pine); } .badge { position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; border-radius:9px; background:var(--gold); color:#1a1200; font-size:.68rem; font-weight:800; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+  main { max-width:960px; margin:0 auto; padding:16px 14px 110px; }
+  h1 { margin:0; font-size:1.55rem; text-transform:uppercase; letter-spacing:-.01em; font-weight:800; } .sub { font-size:.72rem; text-transform:uppercase; letter-spacing:.18em; color:var(--faint); margin-top:4px; }
+  .btn { border:0; border-radius:999px; padding:10px 18px; font:inherit; font-weight:700; cursor:pointer; background:var(--gold); color:#1a1200; } .btn.sec { background:var(--card); color:var(--text); border:1px solid var(--line); } .btn.sm { padding:6px 12px; font-size:.8rem; } .btn.red { background:#fdecea; color:var(--red); } .btn.green { background:var(--grass); color:#fff; } .btn.block { width:100%; } .btn:disabled { opacity:.55; cursor:default; }
+  input,select,textarea { width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); font:inherit; } textarea { resize:vertical; }
+  label.l { display:block; font-size:.78rem; font-weight:700; color:var(--dim); margin:12px 0 5px; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; } @media (min-width:640px){ .grid { grid-template-columns:repeat(3,1fr); } } @media (min-width:900px){ .grid.p { grid-template-columns:repeat(4,1fr); } }
+  .pc { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; cursor:pointer; } .pc .im { aspect-ratio:1; background:#e9efdf; position:relative; display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:2rem; } .pc img { width:100%; height:100%; object-fit:cover; } .pc .bd { padding:9px 11px; } .pc .nm { font-weight:700; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .pr { color:var(--gold); font-weight:800; font-family:ui-monospace,Menlo,monospace; font-size:.9rem; }
+  .qa { position:absolute; right:8px; bottom:8px; width:32px; height:32px; border-radius:50%; border:0; background:var(--gold); color:#1a1200; font-weight:800; font-size:1.1rem; cursor:pointer; }
+  .tile { position:relative; border-radius:16px; overflow:hidden; color:#fff; border:0; text-align:left; cursor:pointer; aspect-ratio:4/3; padding:0; width:100%; } .tile.hero { grid-column:span 2; aspect-ratio:16/9; } .tile .col { position:absolute; inset:0; display:grid; gap:1.5px; } .tile .col img { width:100%; height:100%; object-fit:cover; }
+  .tile .sh { position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.35) 40%,rgba(0,0,0,.02)); } .tile .tx { position:absolute; left:0; right:0; bottom:0; padding:12px; } .tile .tx b { display:block; text-transform:uppercase; font-size:1.15rem; line-height:1; font-weight:800; } .tile.hero .tx b { font-size:1.8rem; } .tile .tx small { font-family:ui-monospace,monospace; font-size:.68rem; opacity:.9; } .tile .pill { position:absolute; top:8px; right:8px; background:var(--gold); color:#1a1200; font-size:.68rem; font-weight:800; padding:4px 9px; border-radius:99px; } .tile .dn { position:absolute; top:8px; left:8px; background:rgba(0,0,0,.55); font-size:.62rem; font-weight:800; padding:3px 6px; border-radius:4px; letter-spacing:.12em; }
+  .chips { display:flex; gap:6px; overflow-x:auto; padding:6px 0; position:sticky; top:56px; background:var(--bg); z-index:5; } .chip { flex:none; border:0; border-radius:99px; padding:7px 13px; font:inherit; font-size:.76rem; font-weight:700; text-transform:uppercase; background:var(--card); color:var(--dim); cursor:pointer; border:1px solid var(--line); } .chip.on { background:var(--text); color:var(--bg); }
+  .row { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px; margin-bottom:8px; } .row .th { width:46px; height:46px; border-radius:8px; background:#e9efdf; overflow:hidden; flex:none; display:flex; align-items:center; justify-content:center; } .row .th img { width:100%; height:100%; object-fit:cover; } .row .mid { flex:1; min-width:0; } .row .mid b { display:block; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .row .mid small { color:var(--dim); font-size:.74rem; }
+  .qty { display:inline-flex; align-items:center; gap:8px; } .qty button { width:28px; height:28px; border-radius:50%; border:0; background:#e9efdf; color:#1b2a17; font-weight:800; cursor:pointer; } .qty span { min-width:18px; text-align:center; font-weight:800; font-family:ui-monospace,monospace; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; } .mono { font-family:ui-monospace,Menlo,monospace; } .pre { white-space:pre-line; font-family:ui-monospace,Menlo,monospace; font-size:.8rem; color:var(--dim); }
+  .seg3 { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; background:var(--card); border:1px solid var(--line); padding:4px; border-radius:99px; margin-bottom:14px; } .seg3 button { border:0; background:none; padding:9px 4px; border-radius:99px; font:inherit; font-size:.78rem; font-weight:700; color:var(--dim); cursor:pointer; } .seg3 button.on { background:var(--text); color:var(--bg); } .seg3 button:disabled { opacity:.35; }
+  .st { display:inline-block; font-size:.66rem; font-weight:800; padding:3px 9px; border-radius:99px; font-family:ui-monospace,monospace; }
+  .ov { position:fixed; inset:0; background:rgba(0,0,0,.62); z-index:60; display:flex; align-items:flex-end; justify-content:center; } @media (min-width:640px){ .ov { align-items:center; } }
+  .sheet { background:var(--bg); width:100%; max-width:420px; max-height:88vh; overflow:auto; border-radius:20px 20px 0 0; } @media (min-width:640px){ .sheet { border-radius:20px; } } .sheet .im { aspect-ratio:1; background:#e9efdf; position:relative; display:flex; align-items:center; justify-content:center; } .sheet .im img { width:100%; height:100%; object-fit:cover; } .sheet .x { position:absolute; top:10px; right:10px; width:34px; height:34px; border-radius:50%; border:0; background:rgba(0,0,0,.55); color:#fff; cursor:pointer; font-size:1.1rem; } .sheet .sh2 { position:absolute; top:10px; left:10px; }
+  .cartbar { position:fixed; left:14px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom,0px)); max-width:420px; margin:0 auto; background:var(--gold); color:#1a1200; border:0; border-radius:99px; padding:13px 18px; display:flex; justify-content:space-between; font:inherit; font-weight:800; cursor:pointer; z-index:40; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  .toast { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(80px + env(safe-area-inset-bottom,0px)); background:#1b2a17; color:#fff; padding:10px 16px; border-radius:99px; z-index:90; max-width:90vw; text-align:center; font-weight:600; font-size:.88rem; }
+  .crumb { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); margin:6px 0 10px; } .crumb a { color:var(--dim); text-decoration:underline; cursor:pointer; }
+  .empty { border:1.5px dashed var(--line); border-radius:14px; padding:30px; text-align:center; color:var(--dim); } .tools { display:flex; gap:8px; margin:10px 0; overflow-x:auto; } .tools select { width:auto; padding:7px 10px; font-size:.78rem; border-radius:99px; }
+  .hero2 { position:relative; border-radius:16px; overflow:hidden; min-height:170px; color:#fff; padding:14px; display:flex; flex-direction:column; justify-content:flex-end; margin-bottom:12px; } .hero2 .col { position:absolute; inset:0; display:grid; gap:1.5px; } .hero2 .col img { width:100%; height:100%; object-fit:cover; } .hero2 .sh { position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.3) 60%,rgba(0,0,0,.05)); } .hero2 > * { position:relative; } .hero2 .col, .hero2 .sh { position:absolute; }
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <a href="index.html" style="display:flex"><img src="assets/logo-mark.png" alt="KenRho" /></a>
+  <div class="t">Club Shop<small>KenRho Park Tennis Club</small></div>
+  <span id="hd-actions" style="display:flex;gap:8px"></span>
+</div></header>
+<main id="app"><div class="empty">Loading the shop…</div></main>
+<div id="modal"></div><div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

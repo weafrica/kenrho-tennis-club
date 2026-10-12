@@ -1,0 +1,6 @@
+-- Applied to the live project as migrations "shop_tables" and "shop_order_rpcs".
+-- Shop: shop_departments, shop_categories, shop_products, shop_orders, shop_order_items,
+--   can_manage_shop() (admin + treasurer), place_shop_order() (prices come from the catalogue),
+--   shop_review_order() (approve/reject/fulfil; approving takes stock off once),
+--   storage buckets: shop-photos (public), shop-payment-proofs (private, managers only).
+-- Register: no schema change; uses public.treasurer_standing (see 10_treasurer_sheet_access.sql).

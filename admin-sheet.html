@@ -3,110 +3,54 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Membership sheet — KenRho Park Tennis Club</title>
+<title>Membership register — KenRho Park Tennis Club</title>
 <link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <meta name="theme-color" content="#1f3d1a" />
 <link rel="stylesheet" href="css/styles.css" />
 <style>
-  .sheet-wrap { overflow:auto; max-height:calc(100vh - 260px); border:1px solid var(--line); border-radius:10px; background:#fff; }
-  table.sheet { border-collapse:separate; border-spacing:0; min-width:1500px; width:100%; font-size:.85rem; }
-  table.sheet th { position:sticky; top:0; background:#eef6d9; z-index:2; text-align:left; padding:8px; white-space:nowrap; border-bottom:1px solid var(--line); }
-  table.sheet td { padding:3px; border-bottom:1px solid #eee; vertical-align:middle; }
-  table.sheet td:first-child, table.sheet th:first-child { position:sticky; left:0; background:#fff; z-index:1; }
-  table.sheet th:first-child { background:#eef6d9; z-index:3; }
-  table.sheet input[type=text], table.sheet input[type=email], table.sheet input[type=tel], table.sheet input[type=number], table.sheet input[type=date], table.sheet select {
-    width:100%; padding:6px 7px; border:1px solid transparent; border-radius:6px; background:transparent; font:inherit; min-width:90px; }
-  table.sheet input:hover, table.sheet select:hover { border-color:var(--line); }
-  table.sheet input:focus, table.sheet select:focus { border-color:#3c7a2e; background:#fff; outline:none; }
-  table.sheet input[type=checkbox] { width:auto; }
-  table.sheet tr.saving td { background:#fffbe6; }
-  table.sheet tr.saved td { background:#f0f9e6; }
-  table.sheet tr.err td { background:#fdecea; }
-  .num { text-align:right; }
-  .bal-owing { color:#b23b2e; font-weight:600; }
-  .bal-credit { color:#2a6a1f; font-weight:600; }
-  .sum-bar { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0; }
-  .sum-bar .stat { flex:1; min-width:150px; }
+  .reg { --pine:#1f3d1a; --grass:#3c7a2e; --lime:#d6f08a; --line:#dfe6d3; max-width:1240px; margin:0 auto; padding:0 16px 40px; }
+  .reg h1 { margin:6px 0 2px; font-size:1.7rem; } .reg .sub { color:#5d6b57; margin:0 0 14px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px; }
+  .st { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; } .st .k { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:#6b7a63; } .st .v { font-size:1.35rem; font-weight:800; margin-top:2px; } .st .s { font-size:.74rem; color:#6b7a63; }
+  .bar { height:8px; border-radius:99px; background:#e6edd9; overflow:hidden; margin-top:6px; } .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--grass),#7bc043); }
+  .bar2 { height:6px; width:100%; min-width:80px; }
+  .tb { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; } .tb input[type=search] { flex:1; min-width:220px; padding:10px 14px; border:1.5px solid var(--line); border-radius:99px; font:inherit; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; } .chip { border:1px solid var(--line); background:#fff; border-radius:99px; padding:6px 13px; font:inherit; font-size:.82rem; font-weight:600; cursor:pointer; color:#3a4a33; } .chip.on { background:var(--pine); color:#fff; border-color:var(--pine); } .chip small { opacity:.65; margin-left:3px; }
+  table.rg { width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:.9rem; }
+  table.rg th { text-align:left; background:#eef6d9; padding:10px 12px; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:#41533a; position:sticky; top:0; }
+  table.rg td { padding:10px 12px; border-top:1px solid #eef1e6; vertical-align:middle; } table.rg tr.m { cursor:pointer; } table.rg tr.m:hover td { background:#f8fbf1; }
+  .nm b { display:block; } .nm small { color:#7a8873; font-size:.72rem; } .tp { display:inline-block; font-size:.68rem; font-weight:700; padding:2px 8px; border-radius:99px; background:#e8f1d6; color:#2f5a22; }
+  .pill { display:inline-block; font-size:.74rem; font-weight:800; padding:4px 10px; border-radius:99px; white-space:nowrap; } .p-ok { background:#e2f4d4; color:#2a6a1f; } .p-owe { background:#fdeadf; color:#b4531a; } .p-cr { background:#e3eefc; color:#1f5fa8; } .p-na { background:#eee; color:#777; }
+  .ck { display:inline-flex; gap:4px; } .ck span { width:22px; height:22px; border-radius:6px; font-size:.68rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; } .ck .y { background:#e2f4d4; color:#2a6a1f; } .ck .n { background:#fdeadf; color:#b4531a; }
+  .dr-bg { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:70; display:flex; justify-content:flex-end; }
+  .dr { background:#fbfcf7; width:min(480px,100%); height:100%; overflow:auto; padding:18px; box-shadow:-10px 0 30px rgba(0,0,0,.2); }
+  .dr h2 { margin:0; } .dr .sec { background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:12px 0; } .dr .sec h4 { margin:0 0 6px; font-size:.78rem; text-transform:uppercase; letter-spacing:.07em; color:#5d6b57; }
+  .dr label { display:block; font-size:.76rem; color:#5d6b57; margin:9px 0 3px; } .dr input[type=text],.dr input[type=email],.dr input[type=tel],.dr input[type=number],.dr input[type=date],.dr select,.dr textarea { width:100%; padding:9px 10px; border:1.5px solid var(--line); border-radius:8px; font:inherit; background:#fff; }
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; } .acts { display:flex; gap:8px; flex-wrap:wrap; } .tog { display:flex; align-items:center; gap:8px; margin:8px 0; } .tog input { width:auto; }
+  .flag { background:#fff6e0; border:1px solid #f0d28a; border-radius:8px; padding:8px 10px; font-size:.8rem; margin-top:8px; }
+  .saved { font-size:.74rem; color:#2a6a1f; min-height:1em; }
+  @media (max-width:760px){ table.rg .hide-s { display:none; } }
 </style>
 </head>
 <body class="app-shell">
-
 <div class="app-nav">
   <div class="wrap">
     <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
-    <div class="flex gap-16">
-      <span class="muted small" id="who">—</span>
-      <a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a>
-      <button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button>
-    </div>
+    <div class="flex gap-16"><span class="muted small" id="who">—</span><a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a><button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button></div>
   </div>
-  <div class="wrap tabs mt-16">
-    <a href="admin.html">Members</a>
-    <a class="active">Membership sheet</a>
-    <a href="admin-documents.html">Invoices &amp; receipts</a>
-  </div>
+  <div class="wrap tabs mt-16"><a href="admin.html">Members</a><a class="active">Membership register</a><a href="admin-documents.html">Invoices &amp; receipts</a></div>
 </div>
-
-<main class="app-main">
-  <div class="wrap" style="max-width:none;padding:0 20px;">
-
-    <div class="flex-between" style="flex-wrap:wrap;gap:12px;">
-      <div>
-        <h2 class="mb-0">Membership sheet <span class="muted small">— Treasurer's edits, 2026</span></h2>
-        <p class="muted small mb-0">Click any cell to edit. Changes save automatically. Only the treasurer and Saul can see or change this page.</p>
-      </div>
-      <div class="flex gap-12">
-        <input type="search" id="q" placeholder="Search name, email, member no…" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;min-width:240px;" />
-        <button id="btn-add" class="btn btn-primary">+ Add member</button>
-        <button id="btn-csv" class="btn btn-outline">Export CSV</button>
-      </div>
-    </div>
-
-    <div class="sum-bar">
-      <div class="stat"><div class="label">Members</div><div class="value" id="s-count">—</div></div>
-      <div class="stat"><div class="label">Expected</div><div class="value" id="s-exp">—</div></div>
-      <div class="stat"><div class="label">Paid</div><div class="value" id="s-paid">—</div></div>
-      <div class="stat"><div class="label">Outstanding</div><div class="value" id="s-bal">—</div></div>
-    </div>
-
-    <div id="add-card" class="card hidden" style="margin-bottom:14px;">
-      <h3>Add a member</h3>
-      <form id="add-form">
-        <div class="form-grid">
-          <div class="form-row"><label>Full name</label><input type="text" id="a-name" required /></div>
-          <div class="form-row"><label>Membership type</label><select id="a-type" required></select></div>
-          <div class="form-row"><label>Email</label><input type="email" id="a-email" /></div>
-          <div class="form-row"><label>Phone</label><input type="tel" id="a-phone" placeholder="27…" /></div>
-          <div class="form-row"><label>Expected fee</label><input type="number" step="0.01" id="a-exp" required /></div>
-          <div class="form-row"><label>Paid so far</label><input type="number" step="0.01" id="a-paid" value="0" /></div>
-        </div>
-        <div class="flex gap-12">
-          <button class="btn btn-primary" id="a-submit">Add to sheet</button>
-          <button type="button" class="btn btn-outline" id="a-cancel">Cancel</button>
-        </div>
-        <p class="muted small mt-8">Member number is generated automatically (e.g. KPTC-26-LGE-036).</p>
-      </form>
-    </div>
-
-    <div class="sheet-wrap">
-      <table class="sheet" id="sheet">
-        <thead>
-          <tr>
-            <th>Member No.</th><th>Full name</th><th>Type</th><th>Email</th><th>Contact number</th>
-            <th>Form in</th><th>Date form</th><th>Proof</th><th>Last payment</th>
-            <th class="num">Expected</th><th class="num">Paid</th><th class="num">Balance</th>
-            <th>Notes / follow-ups</th><th>Social media</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="sheet-body"><tr><td colspan="15" class="muted" style="padding:20px;">Loading…</td></tr></tbody>
-      </table>
-    </div>
-    <p class="muted small mt-8" id="save-state">&nbsp;</p>
-  </div>
-</main>
-
+<main class="app-main"><div class="reg">
+  <div class="flex-between" style="flex-wrap:wrap;gap:10px"><div><h1>Membership register <span style="font-weight:500;color:#6b7a63">2026</span></h1><p class="sub">The treasurer's sheet, made easy. Tap anyone to see or change their details.</p></div>
+    <div class="acts"><button class="btn btn-primary" id="btn-add">+ Add member</button><button class="btn btn-outline" id="btn-csv">Export</button><a class="btn btn-outline" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/1ugiOvbj0WnqZ-TX-yCCaz4t1NoKtpSwadNVaPl1cpxY/edit">Open Google Sheet ↗</a></div></div>
+  <div class="stats" id="stats"></div>
+  <div class="tb"><input type="search" id="q" placeholder="Search name, email, phone or member number…"></div>
+  <div class="chips" id="chips"></div>
+  <div style="overflow:auto"><table class="rg"><thead><tr><th>Member</th><th class="hide-s">Contact</th><th>Paid this year</th><th>Status</th><th class="hide-s">Form · Proof</th></tr></thead><tbody id="rows"><tr><td colspan="5" class="muted" style="padding:24px">Loading…</td></tr></tbody></table></div>
+</div></main>
+<div id="drawer"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabaseClient.js"></script>
