@@ -1,7 +1,7 @@
 // KenRho Park Tennis Club — service worker
 // Bump this version whenever any cached file changes, so old caches are
 // dropped and clients pick up the new files.
-const CACHE_NAME = "kenrho-shell-v12";
+const CACHE_NAME = "kenrho-shell-v13";
 
 const SHELL_FILES = [
   "index.html",
@@ -17,6 +17,23 @@ const SHELL_FILES = [
   "js/member.js",
   "js/family-link.js",
   "js/admin.js",
+  "coach.html",
+  "members-list.html",
+  "admin-accounts.html",
+  "shop-records.html",
+  "js/kr-boost.js",
+  "js/auth-ui.js",
+  "js/fees.js",
+  "js/cms.js",
+  "js/help-me.js",
+  "js/read-aloud.js",
+  "js/listen-everywhere.js",
+  "js/voice-worker.js",
+  "js/statement.js",
+  "js/accounting.js",
+  "js/admin-accounts.js",
+  "js/shop-pdf.js",
+  "js/shop-records.js",
   "shop.html",
   "js/shop.js",
   "js/admin-sheet.js",

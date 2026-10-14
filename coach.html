@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Coaching — KenRho Park Tennis Club</title>
+<meta name="description" content="Coaching at KenRho Park Tennis Club — private and group lessons, junior development and more." />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<nav class="nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="KenRho Park Tennis Club crest" /><span>KenRho Park</span></a>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#membership">Membership</a>
+      <a href="coach.html">Coaching</a>
+      <a href="shop.html">Shop</a>
+      <a href="index.html#news">News</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="auth.html" class="btn btn-primary btn-sm">Member login</a>
+    </div>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+  </div>
+</nav>
+
+<header class="hero" style="padding-bottom:40px">
+  <div class="wrap">
+    <div>
+      <div class="hero-eyebrow">Coaching at KenRho Park</div>
+      <h1>Coach Pilate Ngwenya</h1>
+      <p class="lede">Resident coach Pilate Ngwenya, head coach at Sweatennis Academy, is available to take on players at every level.</p>
+      <div class="hero-cta">
+        <a href="https://wa.me/27764330722" class="btn btn-primary">Book a lesson on WhatsApp</a>
+        <a href="mailto:sweatennisacademy@gmail.com" class="btn btn-outline-light">Email the coach</a>
+      </div>
+    </div>
+    <div class="hero-art"><img src="assets/logo.png" alt="Coach photo or club crest" /></div>
+  </div>
+</header>
+<div class="seam"></div>
+
+<section id="about-coach">
+  <div class="wrap">
+    <div class="section-head"><h2>About the coach</h2></div>
+    <div class="card">
+      <p class="muted">Coaching since 1996, a level 2 national coach and registered chair umpire, Coach Pilate has represented KenRho Park Tennis Club at various leagues and tournaments, and has been involved in development programmes including Get Ahead and Move It.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lessons" class="section-alt">
+  <div class="wrap">
+    <div class="section-head"><h2>Lessons and programmes</h2></div>
+    <div class="grid grid-3">
+      <div class="card"><h3>Private lessons</h3><p class="muted">One-on-one coaching for children and adults, tailored to your level and goals.</p></div>
+      <div class="card"><h3>Group lessons</h3><p class="muted">Small-group sessions for friends, families and club members of similar ability.</p></div>
+      <div class="card"><h3>Junior development squad</h3><p class="muted">Coach Pilate runs the junior development squad at KenRho. Speak to the coach about places and times.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="rates">
+  <div class="wrap">
+    <div class="section-head"><h2>Rates and schedule</h2></div>
+    <div class="grid grid-2">
+      <div class="card"><h3>Lesson rates</h3><p class="muted">Contact the coach for current lesson rates.</p></div>
+      <div class="card"><h3>Coaching times</h3><p class="muted">Lesson times are arranged directly with the coach. Courts are open every day from 6am to 6pm.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact-coach" class="section-dark">
+  <div class="wrap">
+    <h2>Book a lesson</h2>
+    <p class="lede">WhatsApp 076 433 0722, or email the coach.</p>
+    <p><a href="mailto:sweatennisacademy@gmail.com">sweatennisacademy@gmail.com</a></p>
+    <p class="muted small">Club courts: Rhodes Park, 6 Langermann Drive, Kensington, Johannesburg.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><div class="nav-brand" style="margin-bottom:10px;"><img src="assets/logo-mark.png" alt="" style="height:34px;width:34px;" /><span style="font-family:var(--font-display);font-size:1.2rem;">KenRho Park</span></div></div>
+    <div><p><a href="index.html">Home</a></p><p><a href="shop.html">Club shop</a></p><p><a href="auth.html">Member login</a></p></div>
+  </div>
+  <div class="wrap foot-small">&copy; <span id="year"></span> KenRho Park Tennis Club. All rights reserved.</div>
+</footer>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/kr-boost.js" defer></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

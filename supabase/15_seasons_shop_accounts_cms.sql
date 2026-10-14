@@ -1,0 +1,8 @@
+-- Applied to the live project (migration history): shop_team_and_chart, shop_records_stock_accounting, seasons_cms_statements,
+-- season_scoped_email_unique, sheet_sync_core, sheet_sync_cron, shop_product_costs_private, record_document_receipt_ar_aware.
+-- Summary:
+--  * seasons (2025-2026 current; the next season opens when a new treasurer is appointed) + carry-forward of members
+--  * shop_team (manager / assistant), shop_documents, stock_takes, post_journal(), automatic depreciation, opening balances at 1 July 2026
+--  * accounts mapped to the club's statement lines; fs_cum(), ledger_lines(), fs_comparatives (FY2025-26)
+--  * site_content (website editor) + 'coach' role; site-media bucket
+--  * integrations / register_export() / pg_cron job "kr-sheet-sync" for the Google Sheet

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Shop records — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .sr{max-width:1100px;margin:0 auto;padding:0 16px 50px}.sr h1{margin:6px 0 2px}.sr .sub{color:#5d6b57;margin:0 0 12px}
+  .tabs2{display:flex;gap:6px;border-bottom:1px solid #dfe6d3;margin-bottom:14px;overflow-x:auto}.tabs2 button{border:0;background:none;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}.tabs2 .on{border-color:#3c7a2e;color:#2a5a1f}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px;align-items:center}.bar select,.bar input{padding:9px 12px;border:1.5px solid #dfe6d3;border-radius:99px;font:inherit;background:#fff}
+  table.l{width:100%;border-collapse:collapse;background:#fff;border:1px solid #dfe6d3;font-size:.88rem}table.l th{background:#eef6d9;text-align:left;padding:8px 10px;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}table.l td{padding:8px 10px;border-top:1px solid #eef1e6;vertical-align:middle}.r{text-align:right}
+  .pill{display:inline-block;font-size:.7rem;font-weight:800;padding:3px 9px;border-radius:99px;background:#e8f1d6;color:#2f5a22}.pill.w{background:#fff3da;color:#9a6a00}.pill.g{background:#e3eefc;color:#1f5fa8}
+  .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90;display:flex;align-items:center;justify-content:center;padding:12px}.md{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px}.md label{display:block;font-size:.76rem;color:#5d6b57;margin:10px 0 3px}.md input,.md select,.md textarea{width:100%;padding:10px 11px;border:1.5px solid #dfe6d3;border-radius:9px;font:inherit;background:#fff}.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .st{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}.st div{background:#fff;border:1px solid #dfe6d3;border-radius:12px;padding:10px 12px}.st b{display:block;font-size:1.25rem}.st span{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:#6b7a63}
+  td input.cnt{width:84px;padding:6px 8px;border:1.5px solid #dfe6d3;border-radius:8px;font:inherit;text-align:right}
+  @media print{.app-nav,.bar,.tabs2,#kr-help-root,#kr-install-pop,.kr-listen,button{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body class="app-shell">
+<div class="app-nav"><div class="wrap">
+  <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Shop records</span></a>
+  <div class="flex gap-16"><span class="muted small" id="who">—</span><a href="shop.html" class="btn btn-outline-light btn-sm">&larr; Shop</a><button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button></div>
+</div></div>
+<main class="app-main"><div class="sr">
+  <h1>Shop records</h1><p class="sub">Invoices and receipts, stock takes and sales. Everything here feeds the club accounts automatically. <span id="role-note"></span></p>
+  <div class="tabs2" id="tabs"><button data-t="docs" class="on">Documents</button><button data-t="stock">Stock take</button><button data-t="sales">Sales</button><button data-t="ledger" id="t-ledger" class="hidden">Accounting records</button></div>
+  <div id="out"><p class="muted">Loading…</p></div>
+</div></main>
+<div id="modal"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="js/config.js"></script><script src="js/supabaseClient.js"></script><script src="js/site.js"></script>
+<script src="js/shop-pdf.js"></script><script src="js/shop-records.js"></script>
+<script src="js/kr-boost.js" defer></script><script src="js/pwa.js"></script>
+</body>
+</html>

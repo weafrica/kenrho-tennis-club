@@ -40,12 +40,12 @@
     <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
     <div class="flex gap-16"><span class="muted small" id="who">—</span><a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a><button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button></div>
   </div>
-  <div class="wrap tabs mt-16"><a href="admin.html">Members</a><a class="active">Membership register</a><a href="admin-documents.html">Invoices &amp; receipts</a></div>
+  <div class="wrap tabs mt-16"><a href="admin.html">Members</a><a class="active">Membership register</a><a href="admin-documents.html">Invoices &amp; receipts</a><a href="members-list.html">Member list</a></div>
 </div>
 <main class="app-main"><div class="reg">
   <div class="flex-between" style="flex-wrap:wrap;gap:10px"><div><h1>Membership register <span style="font-weight:500;color:#6b7a63">2026</span></h1><p class="sub">The treasurer's sheet, made easy. Tap anyone to see or change their details.</p></div>
-    <div class="acts"><button class="btn btn-primary" id="btn-add">+ Add member</button><button class="btn btn-outline" id="btn-csv">Export</button><a class="btn btn-outline" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/1ugiOvbj0WnqZ-TX-yCCaz4t1NoKtpSwadNVaPl1cpxY/edit">Open Google Sheet ↗</a></div></div>
-  <div class="stats" id="stats"></div>
+    <div class="acts"><select id="season" title="Season" style="padding:9px 12px;border:1.5px solid #dfe6d3;border-radius:99px;font:inherit;font-weight:700;background:#fff"></select><button class="btn btn-outline hidden" id="btn-newseason">Start new season</button><button class="btn btn-primary" id="btn-add">+ Add member</button><button class="btn btn-outline" id="btn-csv">Export</button><button class="btn btn-outline" id="btn-sync">🔗 Google Sheet sync</button><a class="btn btn-outline" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/1ugiOvbj0WnqZ-TX-yCCaz4t1NoKtpSwadNVaPl1cpxY/edit">Open Google Sheet ↗</a></div></div>
+  <div id="season-note" class="flag hidden" style="margin-bottom:10px"></div><div class="stats" id="stats"></div>
   <div class="tb"><input type="search" id="q" placeholder="Search name, email, phone or member number…"></div>
   <div class="chips" id="chips"></div>
   <div style="overflow:auto"><table class="rg"><thead><tr><th>Member</th><th class="hide-s">Contact</th><th>Paid this year</th><th>Status</th><th class="hide-s">Form · Proof</th></tr></thead><tbody id="rows"><tr><td colspan="5" class="muted" style="padding:24px">Loading…</td></tr></tbody></table></div>
@@ -55,7 +55,10 @@
 <script src="js/config.js"></script>
 <script src="js/supabaseClient.js"></script>
 <script src="js/site.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="js/statement.js"></script>
 <script src="js/admin-sheet.js"></script>
 <script src="js/pwa.js"></script>
+<script src="js/kr-boost.js" defer></script>
 </body>
 </html>

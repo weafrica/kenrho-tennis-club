@@ -1,7 +1,7 @@
 // Invoice & receipt maker for the treasurer and Saul. Saves to public.documents.
 const DOC_ALLOWED = ["saulestoo@gmail.com"];
 const D = window.KR_DOC;
-let S = D.blank("invoice"), ST = [], SAVED = [], PROFILES = [], dirty = false, ME = null;
+let S = D.blank("invoice"), ST = [], SAVED = [], PROFILES = [], dirty = false, ME = null, SEASONS = [], DEFAULT_SEASON = null, SAVED_SEASON = null;
 const $ = (id) => document.getElementById(id);
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const money = (v) => D.fmtR(v);
@@ -59,7 +59,7 @@ function updateHint() {
   const bal = Number(r.expected_amount || 0) - Number(r.paid_amount || 0);
   h.classList.remove("hidden");
   h.innerHTML = `On the sheet: expected <b>${money(r.expected_amount)}</b> · paid <b>${money(r.paid_amount)}</b> · ` +
-    (bal > 0 ? `still owing <b>${money(bal)}</b> <button type="button" class="btn btn-sm btn-outline" id="use-balance">Use ${money(bal)}</button>` : `<b>nothing owing</b>`);
+    (bal > 0 ? `still owing <b>${money(bal)}</b> <button type="button" class="btn btn-sm btn-outline" id="use-balance">Use ${money(bal)}</button>` : `<b>nothing owing</b>`) + ` <button type="button" class="btn btn-sm btn-primary" data-stmt>📑 Statement of account</button>`;
   $("rec-sheet-lbl").textContent = `Also add this payment to ${r.full_name}'s Paid amount on the Membership sheet`;
 }
 
@@ -109,6 +109,7 @@ async function save() {
       if (!error) { r.paid_amount = paid; r.last_payment_date = S.date; $("rec-sheet").checked = false; }
     }
   }
+  if (isNew && S.type === "receipt" && $("rec-acc") && $("rec-acc").checked) { const rr = await window.sb.rpc("record_document_receipt", { p_doc: S.id, p_account: "4000" }); window.KR.toast(rr.error ? "Saved, but not recorded in the accounts: " + rr.error.message : rr.data, rr.error ? "warn" : "info"); }
   $("state-msg").textContent = `Saved ${S.number} ✓`; $("btn-delete").classList.remove("hidden");
   window.KR.toast(`${S.number} saved.`); loadSaved(); updateHint();
   return true;
@@ -116,7 +117,9 @@ async function save() {
 
 // ------------------------------------------------------------------ saved list / existing
 async function loadSaved() {
-  const { data } = await window.sb.from("documents").select("id,doc_type,doc_number,doc_date,member_name,member_no,category,amount,data").order("created_at", { ascending: false }).limit(300);
+  let dq = window.sb.from("documents").select("id,doc_type,doc_number,doc_date,member_name,member_no,category,amount,data").order("created_at", { ascending: false }).limit(300);
+  if (SAVED_SEASON) dq = dq.eq("season_id", SAVED_SEASON);
+  const { data } = await dq;
   SAVED = data || []; renderSaved(); buildExisting();
 }
 function renderSaved() {
@@ -172,8 +175,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!ok) { window.location.href = "admin.html"; return; }
   $("who").textContent = ME.full_name || ME.email; $("btn-sign-out").addEventListener("click", window.KR_signOut);
 
+  const { data: ssn } = await window.sb.from("seasons").select("*").order("starts_on", { ascending: false }); SEASONS = ssn || [];
+  DEFAULT_SEASON = (SEASONS.find((x) => x.is_default) || {}).id || null; SAVED_SEASON = DEFAULT_SEASON;
   const [{ data: st }, { data: pr }] = await Promise.all([
-    window.sb.from("treasurer_standing").select("*").order("full_name"),
+    (DEFAULT_SEASON ? window.sb.from("treasurer_standing").select("*").eq("season_id", DEFAULT_SEASON) : window.sb.from("treasurer_standing").select("*")).order("full_name"),
     window.sb.from("profiles").select("id, full_name, email"),
   ]);
   ST = st || []; PROFILES = pr || [];
@@ -208,6 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
   $("hint").addEventListener("click", (e) => {
+    if (e.target.dataset.stmt !== undefined) return window.KR_STMT.open(S.standing_id);
     if (e.target.id !== "use-balance") return; const r = standingFor(), bal = Number(r.expected_amount || 0) - Number(r.paid_amount || 0);
     if (S.type === "invoice") { S.override = bal; $("f-override").value = bal; } else { S.paid = bal; $("f-paid").value = bal; }
     touch();
@@ -250,6 +256,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (S.id === id) await newDoc(S.type); loadSaved();
   });
 
+  $("saved-season").innerHTML = SEASONS.map((x) => `<option value="${x.id}"${x.id === SAVED_SEASON ? " selected" : ""}>Season ${D.esc(x.label)}${x.is_default ? " · current" : ""}</option>`).join("");
+  $("saved-season").addEventListener("change", (e) => { SAVED_SEASON = e.target.value; loadSaved(); });
   window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
   const qp = new URLSearchParams(location.search), sid = qp.get("standing");
   await newDoc(qp.get("type") === "receipt" ? "receipt" : "invoice"); await loadSaved();

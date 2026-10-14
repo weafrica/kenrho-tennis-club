@@ -642,6 +642,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (CTX.profile.role === "admin" && ["kenrhoparktennisclub@gmail.com", "saulestoo@gmail.com"].includes((CTX.profile.email || "").toLowerCase())) {
     document.getElementById("tab-officers-link").classList.remove("hidden");
   }
+  { const em = (CTX.profile.email || "").toLowerCase(), saul = em === "saulestoo@gmail.com", r = CTX.profile.role, show = (id) => { const n = document.getElementById(id); if (n) n.classList.remove("hidden"); };
+    if (saul || ["treasurer", "chairman", "admin"].includes(r)) { show("tab-list-link"); show("tab-shoprec-link"); }
+    if (saul || r === "treasurer") show("tab-accounts-link"); }
   document.getElementById("manual-add-line").addEventListener("click", addManualLine);
   document.getElementById("btn-post-manual").addEventListener("click", postManualEntry);
   document.querySelector("#manual-lines-table").addEventListener("click", (e) => {

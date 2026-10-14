@@ -63,6 +63,7 @@ async function loadAll() {
     sb.from("shop_categories").select("id, name, position, department_id, parent_category_id").order("position"),
   ]);
   S.products = p.data || []; S.depts = d.data || []; S.cats = c.data || [];
+  if (S.manager) { const k = await sb.from("shop_product_costs").select("*"); S.costs = {}; (k.data || []).forEach((x) => (S.costs[x.product_id] = x)); }
 }
 async function loadMyOrders() { if (!S.session) return; const { data } = await sb.from("shop_orders").select(ORDER_SELECT).eq("user_id", S.session.user.id).order("created_at", { ascending: false }); S.orders = data || []; }
 async function loadAdminOrders() { const { data } = await sb.from("shop_orders").select(ORDER_SELECT).order("created_at", { ascending: false }); S.orders = data || []; }
@@ -237,11 +238,12 @@ function viewConfirm() {
 const stBadge = (s) => { const [l, c] = STATUS[s] || [s, "#888"]; return `<span class="st" style="background:${c}22;color:${c}">${esc(l)}</span>`; };
 function orderCard(o, admin) {
   return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><b>${admin ? esc(o.buyer_username) : new Date(o.created_at).toLocaleDateString()}</b>${stBadge(o.status)}</div>
-  ${admin ? `<div class="mono" style="font-size:.7rem;color:var(--faint);margin-bottom:6px">${new Date(o.created_at).toLocaleString()} · ${esc(o.checkout_method.replace("_", " "))}${o.contact_phone ? " · " + esc(o.contact_phone) : ""}</div>` : ""}
+  ${admin ? `<div class="mono" style="font-size:.7rem;color:var(--faint);margin-bottom:6px">${new Date(o.created_at).toLocaleString()} · ${o.checkout_method === "ikhokha_link" ? "💳 card" : esc(o.checkout_method.replace("_", " "))}${o.contact_phone ? " · " + esc(o.contact_phone) : ""}</div>` : ""}
   ${(o.shop_order_items || []).map((i) => `<div style="display:flex;justify-content:space-between;color:var(--dim);font-size:.85rem"><span>${i.qty}× ${esc(i.product_name)}</span><span>${money(i.qty * i.unit_price)}</span></div>`).join("")}
   ${o.delivery_note ? `<div style="font-size:.82rem;color:var(--faint);margin-top:4px">Note: ${esc(o.delivery_note)}</div>` : ""}
+  ${!admin && ["paid", "fulfilled"].includes(o.status) ? `<div style="margin-top:8px"><button class="btn sec sm" data-rcpt="${o.id}">🧾 Download receipt</button></div>` : ""}
   <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:8px;padding-top:8px"><b>Total</b><b class="mono">${money(o.subtotal)}</b></div>
-  ${admin ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${o.payment_proof_path ? `<button class="btn sec sm" data-proof="${o.id}">View proof</button>` : ""}${o.status === "pending_review" ? `<button class="btn green sm" data-rv="${o.id}" data-s="paid">✓ Approve</button><button class="btn red sm" data-rv="${o.id}" data-s="rejected">✕ Reject</button>` : ""}${["paid", "whatsapp_sent"].includes(o.status) ? `<button class="btn sec sm" data-rv="${o.id}" data-s="fulfilled">🚚 Mark fulfilled</button>` : ""}</div>` : ""}</div>`;
+  ${admin ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${o.payment_proof_path ? `<button class="btn sec sm" data-proof="${o.id}">View proof</button>` : ""}${["pending_review", "whatsapp_sent"].includes(o.status) ? `<button class="btn green sm" data-rv="${o.id}" data-s="paid">✓ Approve (bank)</button><button class="btn sec sm" data-rv="${o.id}" data-s="paid" data-cash="1">💵 Paid cash</button>` : ""}${o.status === "pending_review" ? `<button class="btn red sm" data-rv="${o.id}" data-s="rejected">✕ Reject</button>` : ""}${["paid", "fulfilled"].includes(o.status) ? `<button class="btn sec sm" data-rcpt="${o.id}">🧾 Receipt PDF</button>` : ""}${["paid", "whatsapp_sent"].includes(o.status) ? `<button class="btn sec sm" data-rv="${o.id}" data-s="fulfilled">🚚 Mark fulfilled</button>` : ""}</div>` : ""}</div>`;
 }
 function viewOrders() {
   if (!S.session) return `<div class="empty">Sign in to see your orders.</div>`;
@@ -250,7 +252,7 @@ function viewOrders() {
 }
 
 // ───────────────────────── admin
-const adminNav = (cur) => `<div class="tools"><button class="chip ${cur === "p" ? "on" : ""}" data-go="admin">Products</button><button class="chip ${cur === "d" ? "on" : ""}" data-go="admin-depts">Departments</button><button class="chip ${cur === "o" ? "on" : ""}" data-go="admin-orders">Orders${S.pendingN ? ` (${S.pendingN})` : ""}</button></div>`;
+const adminNav = (cur) => `<div class="tools"><button class="chip ${cur === "p" ? "on" : ""}" data-go="admin">Products</button><button class="chip ${cur === "d" ? "on" : ""}" data-go="admin-depts">Departments</button><button class="chip ${cur === "o" ? "on" : ""}" data-go="admin-orders">Orders${S.pendingN ? ` (${S.pendingN})` : ""}</button><button class="chip" data-gopage="shop-records.html">Records &amp; stock take</button></div>`;
 function viewAdminProducts() {
   const q = (S.aq || "").toLowerCase(), list = S.products.filter((p) => !q || p.name.toLowerCase().includes(q));
   const dn = new Map(S.depts.map((d) => [d.id, d.name]));
@@ -265,6 +267,7 @@ function openProductForm(id) {
   $("#modal").innerHTML = `<div class="ov"><div class="sheet" style="padding:16px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="text-transform:uppercase;font-size:1.1rem">${p.id ? "Edit product" : "Add product"}</b><button class="btn sec sm" data-closeform>✕</button></div>
   <label class="l">Name</label><input id="f-name" value="${esc(p.name || "")}"><label class="l">Description</label><textarea id="f-desc" rows="2">${esc(p.description || "")}</textarea>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="l">Price (R)</label><input id="f-price" type="number" min="0" step="0.01" value="${p.price ?? ""}"></div><div><label class="l">Stock</label><input id="f-stock" type="number" min="0" value="${p.stock_qty ?? 0}"></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="l">Cost price (R) — private</label><input id="f-cost" type="number" min="0" step="0.01" value="${(S.costs && S.costs[p.id] ? S.costs[p.id].cost_price : 0)}"></div><div><label class="l">Warn me when stock is at or below</label><input id="f-reorder" type="number" min="0" value="${(S.costs && S.costs[p.id] ? S.costs[p.id].reorder_level : 0)}"></div></div>
   <label class="l">Department</label><select id="f-dept"><option value="">Uncategorized</option>${S.depts.map((d) => `<option value="${d.id}"${d.id === dept ? " selected" : ""}>${esc(d.name)}</option>`).join("")}</select>
   <div id="f-catwrap" style="${dc.length ? "" : "display:none"}"><label class="l">Category</label><select id="f-cat">${catOpts(dept)}</select></div>
   <label class="l">Product photo</label><input id="f-photo" type="file" accept="image/*"><label style="display:flex;gap:8px;align-items:center;margin:12px 0"><input id="f-active" type="checkbox" style="width:auto" ${p.active === false ? "" : "checked"}> Visible in the shop</label>
@@ -282,7 +285,10 @@ async function saveProductForm() {
     image_url = sb.storage.from("shop-photos").getPublicUrl(path).data.publicUrl;
   }
   const payload = { name, description: $("#f-desc").value || null, price, stock_qty: Number($("#f-stock").value) || 0, active: $("#f-active").checked, image_url, department_id: $("#f-dept").value || null, category_id: $("#f-cat") && $("#f-dept").value ? $("#f-cat").value || null : null };
-  const { error } = p.id ? await sb.from("shop_products").update(payload).eq("id", p.id) : await sb.from("shop_products").insert(payload);
+  let pid = p.id, error;
+  if (pid) ({ error } = await sb.from("shop_products").update(payload).eq("id", pid));
+  else { const r = await sb.from("shop_products").insert(payload).select("id").single(); error = r.error; pid = r.data && r.data.id; }
+  if (!error && pid) { const c = await sb.from("shop_product_costs").upsert({ product_id: pid, cost_price: Number($("#f-cost").value) || 0, reorder_level: parseInt($("#f-reorder").value, 10) || 0 }); error = c.error; }
   if (error) { $("[data-saveform]").disabled = false; return toast("Couldn't save product: " + error.message); }
   $("#modal").innerHTML = ""; toast(p.id ? "Product updated." : "Product added."); await loadAll(); render();
 }
@@ -304,6 +310,23 @@ function viewAdminOrders() {
   S.pendingN = S.orders.filter((o) => o.status === "pending_review").length;
   return `<h1>📋 Orders</h1>${adminNav("o")}<div class="tools">${["pending_review", "paid", "whatsapp_sent", "fulfilled", "rejected", "all"].map((x) => `<button class="chip ${f === x ? "on" : ""}" data-af="${x}">${x.replace("_", " ")}</button>`).join("")}</div>${list.length ? list.map((o) => orderCard(o, true)).join("") : `<div class="empty">No orders here.</div>`}`;
 }
+async function autoDocs(orderId) {
+  try {
+    const { data, error } = await sb.rpc("shop_issue_documents", { p_order: orderId }); if (error) throw error;
+    const o = S.orders.find((x) => x.id === orderId), items = (o.shop_order_items || []).map((i) => ({ name: i.product_name, qty: i.qty, unit: i.unit_price })), method = { whatsapp: "WhatsApp / cash", manual_proof: "EFT", ikhokha_link: "Card" }[o.checkout_method] || o.checkout_method;
+    const mk = (kind, d) => window.KR_SHOPDOC.make({ kind, number: d.doc_number, date: d.doc_date, customer: o.buyer_username, items, total: o.subtotal, method });
+    const [ib, rb] = await Promise.all([mk("invoice", data.invoice), mk("receipt", data.receipt)]);
+    for (const [b, d] of [[ib, data.invoice], [rb, data.receipt]]) { const path = `${new Date().getFullYear()}/${d.doc_number}.pdf`; const up = await sb.storage.from("shop-documents").upload(path, b, { contentType: "application/pdf" }); if (!up.error || /exists/i.test(up.error.message)) await sb.rpc("shop_set_document_file", { p_id: d.id, p_path: path }); }
+    window.KR_SHOPDOC.download(rb, data.receipt.doc_number + ".pdf"); toast(`Receipt ${data.receipt.doc_number} and invoice ${data.invoice.doc_number} created and filed.`);
+  } catch (e) { toast("Approved, but the receipt could not be created: " + (e.message || e)); }
+}
+async function downloadReceipt(id) {
+  const o = (S.orders || []).find((x) => x.id === id); if (!o) return;
+  let number = "RCPT-" + id.slice(0, 8).toUpperCase(), date = o.created_at; const { data } = await sb.rpc("shop_order_docs", { p_order: id }), rec = (data || []).find((d) => d.doc_kind === "sales_receipt");
+  if (rec) { number = rec.doc_number; date = rec.doc_date; }
+  const blob = await window.KR_SHOPDOC.make({ kind: "receipt", number, date, customer: o.buyer_username, items: (o.shop_order_items || []).map((i) => ({ name: i.product_name, qty: i.qty, unit: i.unit_price })), total: o.subtotal, method: { whatsapp: "WhatsApp / cash", manual_proof: "EFT", ikhokha_link: "Card" }[o.checkout_method] || "" });
+  window.KR_SHOPDOC.download(blob, number + ".pdf");
+}
 async function mv(table, rows, id, d) {
   const i = rows.findIndex((r) => r.id === id), o = rows[i + d]; if (!o) return;
   const me = rows[i]; await sb.from(table).update({ position: o.position }).eq("id", me.id); await sb.from(table).update({ position: me.position }).eq("id", o.id); await loadAll(); render();
@@ -311,7 +334,7 @@ async function mv(table, rows, id, d) {
 
 // ───────────────────────── events
 document.addEventListener("click", async (e) => {
-  const t = e.target.closest("[data-go],[data-back],[data-open],[data-quick],[data-dept],[data-cat],[data-crumb],[data-cf],[data-instock],[data-close],[data-share],[data-mq],[data-addmodal],[data-cq],[data-crm],[data-m],[data-place],[data-rv],[data-proof],[data-af],[data-edit],[data-delp],[data-closeform],[data-saveform],[data-adddept],[data-mvd],[data-rend],[data-deld],[data-addcat],[data-mvc],[data-subc],[data-renc],[data-delc]");
+  const t = e.target.closest("[data-go],[data-back],[data-open],[data-quick],[data-dept],[data-cat],[data-crumb],[data-cf],[data-instock],[data-close],[data-share],[data-mq],[data-addmodal],[data-cq],[data-crm],[data-m],[data-place],[data-rv],[data-rcpt],[data-gopage],[data-proof],[data-af],[data-edit],[data-delp],[data-closeform],[data-saveform],[data-adddept],[data-mvd],[data-rend],[data-deld],[data-addcat],[data-mvc],[data-subc],[data-renc],[data-delc]");
   if (!t) return; const D = t.dataset;
   if (D.close !== undefined && e.target !== t && !e.target.matches("[data-close]")) return;
   if (D.go !== undefined) { e.preventDefault(); return go(D.go); }
@@ -331,7 +354,9 @@ document.addEventListener("click", async (e) => {
   if (D.crm) { S.cart = S.cart.filter((x) => x.productId !== D.crm); saveCart(); return render(); }
   if (D.m) { S.method = D.m; return render(); }
   if (D.place) return placeOrder(D.place, t);
-  if (D.rv) { const { error } = await sb.rpc("shop_review_order", { p_order: D.rv, p_status: D.s }); if (error) return toast(error.message); toast(D.s === "paid" ? "Order approved — stock updated." : "Order updated."); await Promise.all([loadAdminOrders(), loadAll()]); return render(); }
+  if (D.rv) { const { error } = await sb.rpc("shop_review_order", { p_order: D.rv, p_status: D.s, p_cash: D.cash === "1" }); if (error) return toast(error.message); if (D.s === "paid") { toast("Order approved — stock updated and sale recorded."); await autoDocs(D.rv); } else toast("Order updated."); await Promise.all([loadAdminOrders(), loadAll()]); return render(); }
+  if (D.rcpt) return downloadReceipt(D.rcpt);
+  if (D.gopage) { location.href = D.gopage; return; }
   if (D.proof) { const o = S.orders.find((x) => x.id === D.proof), { data, error } = await sb.storage.from("shop-payment-proofs").createSignedUrl(o.payment_proof_path, 120); return error ? toast("Couldn't open the proof.") : window.open(data.signedUrl, "_blank", "noopener"); }
   if (D.af) { S.adminFilter = D.af; return render(); }
   if (D.edit) return openProductForm(D.edit);
@@ -358,7 +383,7 @@ document.addEventListener("change", (e) => { if (e.target.id === "sort") { S.sor
 // ───────────────────────── boot
 (async function boot() {
   const { data: { session } } = await sb.auth.getSession(); S.session = session;
-  if (session) { const { data } = await sb.from("profiles").select("full_name, phone, role, status, email").eq("id", session.user.id).single(); S.profile = data; S.manager = !!data && data.status === "approved" && ["admin", "treasurer"].includes(data.role); }
+  if (session) { const { data } = await sb.from("profiles").select("full_name, phone, role, status, email").eq("id", session.user.id).single(); S.profile = data; const sr = await sb.rpc("my_shop_role"); S.shopRole = sr.data || null; S.manager = !!S.shopRole; }
   await loadAll();
   const shared = new URLSearchParams(location.search).get("p");
   await route();

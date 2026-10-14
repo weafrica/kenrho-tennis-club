@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Member list — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .ml{max-width:1100px;margin:0 auto;padding:0 16px 40px}.ml h1{margin:6px 0 2px}.ml .sub{color:#5d6b57;margin:0 0 12px}
+  .grp{margin:18px 0 6px;display:flex;align-items:baseline;gap:10px}.grp h3{margin:0;text-transform:uppercase;letter-spacing:.05em;font-size:.95rem}.grp small{color:#6b7a63}
+  table.l{width:100%;border-collapse:collapse;background:#fff;border:1px solid #dfe6d3;font-size:.9rem}table.l th{background:#eef6d9;text-align:left;padding:8px 10px;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}table.l td{padding:8px 10px;border-top:1px solid #eef1e6}
+  .pill{display:inline-block;font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:99px}.ok{background:#e2f4d4;color:#2a6a1f}.owe{background:#fdeadf;color:#b4531a}.cr{background:#e3eefc;color:#1f5fa8}
+  .tb{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}.tb input,.tb select{padding:9px 12px;border:1.5px solid #dfe6d3;border-radius:99px;font:inherit;background:#fff}
+  @media print{.app-nav,.tb,#btn-bar,#kr-help-root,#kr-install-pop,.kr-listen{display:none!important}body{background:#fff}.ml{padding:0}table.l{font-size:11px}.grp{break-after:avoid}tr{break-inside:avoid}}
+</style>
+</head>
+<body class="app-shell">
+<div class="app-nav"><div class="wrap">
+  <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
+  <div class="flex gap-16"><span class="muted small" id="who">—</span><a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a><button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button></div>
+</div><div class="wrap tabs mt-16"><a href="admin.html">Members</a><a href="admin-sheet.html" id="t-reg" class="hidden">Membership register</a><a class="active">Member list</a></div></div>
+<main class="app-main"><div class="ml">
+  <div class="flex-between" style="flex-wrap:wrap;gap:10px"><div><h1>Member list <span id="season-lbl" style="font-weight:500;color:#6b7a63"></span></h1><p class="sub" id="sub">—</p></div>
+    <div id="btn-bar" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" id="btn-print">Print / save as PDF</button><button class="btn btn-outline" id="btn-csv">Export CSV</button></div></div>
+  <div class="tb"><input type="search" id="q" placeholder="Search name, number, phone or email…" style="flex:1;min-width:220px"><select id="season"></select><select id="stat"><option value="all">Everyone</option><option value="owing">Owing</option><option value="paid">Paid up</option></select></div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script><script src="js/supabaseClient.js"></script><script src="js/site.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id), R = (n) => "R" + (Number.isInteger(+n) ? +n : (+n).toFixed(2));
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const g = await window.KR_guard("staff"); if (!g) return; const me = g.profile;
+  if (!(["treasurer", "chairman", "admin"].includes(me.role) || (me.email || "").toLowerCase() === "saulestoo@gmail.com")) { location.href = "admin.html"; return; }
+  if (me.role === "treasurer" || me.role === "admin") $("t-reg").classList.remove("hidden");
+  $("who").textContent = me.full_name || me.email; $("btn-sign-out").onclick = window.KR_signOut;
+  const [{ data: types }, { data: ss }] = await Promise.all([window.sb.from("membership_types").select("*").order("sort_order"), window.sb.from("seasons").select("*").order("starts_on", { ascending: false })]);
+  let SEASON = ((ss || []).find((x) => x.is_default) || (ss || [])[0] || {}).id, ROWS = [];
+  $("season").innerHTML = (ss || []).map((x) => `<option value="${x.id}">Season ${esc(x.label)}${x.is_default ? " · current" : ""}</option>`).join("");
+  const bal = (r) => Number(r.expected_amount || 0) - Number(r.paid_amount || 0);
+  const vis = () => { const q = $("q").value.trim().toLowerCase(), s = $("stat").value; return ROWS.filter((r) => (!q || [r.full_name, r.member_no, r.phone, r.email].some((x) => (x || "").toLowerCase().includes(q))) && (s === "all" || (s === "owing" ? bal(r) > 0.005 : bal(r) <= 0.005))); };
+  function draw() {
+    const rows = vis(); $("sub").textContent = `${rows.length} of ${ROWS.length} members · printed ${new Date().toLocaleDateString("en-ZA")}`;
+    $("season-lbl").textContent = (ss.find((x) => x.id === SEASON) || {}).label || "";
+    $("list").innerHTML = (types || []).map((t) => { const m = rows.filter((r) => r.membership_type_code === t.code); if (!m.length) return "";
+      return `<div class="grp"><h3>${esc(t.name)}</h3><small>${m.length} member${m.length === 1 ? "" : "s"}</small></div><table class="l"><thead><tr><th style="width:120px">No.</th><th>Name</th><th>Phone</th><th>Email</th><th>Status</th></tr></thead><tbody>${m.map((r) => { const b = bal(r); return `<tr><td>${esc(r.member_no || "")}</td><td><b>${esc(r.full_name)}</b></td><td>${esc(r.phone || "")}</td><td>${esc(r.email || "")}</td><td><span class="pill ${b > 0.005 ? "owe" : b < -0.005 ? "cr" : "ok"}">${b > 0.005 ? "Owes " + R(b) : b < -0.005 ? "Credit " + R(-b) : "Paid up"}</span></td></tr>`; }).join("")}</tbody></table>`; }).join("") || `<p class="muted">No members match.</p>`;
+  }
+  async function load() { const { data } = await window.sb.from("treasurer_standing").select("*").eq("season_id", SEASON).order("full_name"); ROWS = data || []; draw(); }
+  ["q", "stat"].forEach((i) => $(i).addEventListener("input", draw)); $("season").addEventListener("change", (e) => { SEASON = e.target.value; load(); });
+  $("btn-print").onclick = () => window.print();
+  $("btn-csv").onclick = () => { const q = (v) => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`, rows = vis(); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([["Member No,Name,Category,Phone,Email,Expected,Paid,Balance"].concat(rows.map((r) => [r.member_no, r.full_name, (types.find((t) => t.code === r.membership_type_code) || {}).name, r.phone, r.email, r.expected_amount, r.paid_amount, bal(r)].map(q).join(","))).join("\n")], { type: "text/csv" })); a.download = "kenrho-member-list.csv"; a.click(); };
+  load();
+})();
+</script>
+<script src="js/kr-boost.js" defer></script><script src="js/pwa.js"></script>
+</body>
+</html>

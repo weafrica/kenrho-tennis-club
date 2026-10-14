@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Accounts — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .ac{max-width:1100px;margin:0 auto;padding:0 16px 50px}.ac h1{margin:6px 0 2px}.ac .sub{color:#5d6b57;margin:0 0 12px}
+  .ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}.ctl select,.ctl button{padding:9px 14px;border:1.5px solid #dfe6d3;border-radius:99px;font:inherit;background:#fff;cursor:pointer}.ctl .on{background:#1f3d1a;color:#fff;border-color:#1f3d1a}
+  .tabs2{display:flex;gap:6px;border-bottom:1px solid #dfe6d3;margin-bottom:14px;overflow-x:auto}.tabs2 button{border:0;background:none;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}.tabs2 .on{border-color:#3c7a2e;color:#2a5a1f}
+  .sheet{background:#fff;border:1px solid #dfe6d3;border-radius:12px;padding:18px 20px;margin-bottom:18px}.sheet h2{margin:0;font-size:1.15rem;text-align:center;text-transform:uppercase}.sheet .p{text-align:center;color:#5d6b57;margin:2px 0 12px;font-size:.88rem}
+  table.f{width:100%;border-collapse:collapse;font-size:.92rem}table.f td,table.f th{padding:5px 6px}table.f th{text-align:right;font-size:.72rem;text-transform:uppercase;color:#5d6b57;border-bottom:1px solid #dfe6d3}table.f th:first-child{text-align:left}table.f td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}table.f tr.h td{font-weight:800;padding-top:12px;text-transform:uppercase;font-size:.78rem;color:#41533a}table.f tr.t td{font-weight:800;border-top:1px solid #1b2a17}table.f tr.g td{font-weight:800;border-top:2px solid #1b2a17;border-bottom:3px double #1b2a17}table.f td.i{padding-left:22px}
+  .neg{color:#b23b2e}.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}.tacc{background:#fff;border:1px solid #dfe6d3;border-radius:10px;padding:10px;font-size:.82rem}.tacc h4{margin:0 0 6px;text-align:center}.tacc .tt{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid #1b2a17}.tacc .tt>div{padding:4px 6px;min-height:40px}.tacc .tt>div:first-child{border-right:2px solid #1b2a17}.tacc .r{display:flex;justify-content:space-between;gap:6px}.tacc .tot{border-top:1px solid #1b2a17;font-weight:800;margin-top:4px;padding-top:3px}
+  .chk{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid #eef1e6}.ok{color:#2a6a1f}.warn{color:#b4531a}
+  @media print{.app-nav,.ctl,.tabs2,#kr-help-root,#kr-install-pop,.kr-listen{display:none!important}.sheet{border:0;padding:0;page-break-after:always}.tacc{break-inside:avoid}body{background:#fff}}
+</style>
+</head>
+<body class="app-shell">
+<div class="app-nav"><div class="wrap">
+  <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
+  <div class="flex gap-16"><span class="muted small" id="who">—</span><a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a><button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button></div>
+</div><div class="wrap tabs mt-16"><a href="admin.html">Members</a><a href="admin-sheet.html">Membership register</a><a href="admin-documents.html">Invoices &amp; receipts</a><a href="shop-records.html">Shop records</a><a class="active">Accounts</a></div></div>
+<main class="app-main"><div class="ac">
+  <h1>Accounts <span id="fyl" style="font-weight:500;color:#6b7a63"></span></h1>
+  <p class="sub">Built automatically from the receipts, invoices, shop sales and stock takes. Financial year 1 July – 30 June.</p>
+  <div class="ctl"><select id="fy"></select><span id="kind"></span><select id="per"></select><button id="print">Print / save PDF</button><button id="csv">Export CSV</button></div>
+  <div class="tabs2" id="tabs"><button data-t="st" class="on">Statements</button><button data-t="ta">T-accounts</button><button data-t="pr">Preparation</button><button data-t="jr">Journal</button></div>
+  <div id="out"><p class="muted">Loading…</p></div>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script><script src="js/supabaseClient.js"></script><script src="js/site.js"></script>
+<script src="js/accounting.js"></script><script src="js/admin-accounts.js"></script>
+<script src="js/kr-boost.js" defer></script><script src="js/pwa.js"></script>
+</body>
+</html>

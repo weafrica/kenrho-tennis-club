@@ -56,7 +56,7 @@
   </div>
   <div class="wrap tabs mt-16">
     <a href="admin.html">Members</a>
-    <a href="admin-sheet.html">Membership register</a>
+    <a href="admin-sheet.html">Membership sheet</a>
     <a class="active">Invoices &amp; receipts</a>
   </div>
 </div>
@@ -99,6 +99,7 @@
           </div>
           <label>Reference used</label><input type="text" id="f-ref" placeholder="e.g. John Smith League" />
           <label style="display:flex;gap:8px;align-items:center;margin-top:12px;"><input type="checkbox" id="rec-sheet" style="width:auto" /> <span id="rec-sheet-lbl">Also add this payment to the member's Paid amount on the Membership sheet</span></label>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:8px;"><input type="checkbox" id="rec-acc" style="width:auto" /> <span>Record this receipt in the club accounts (income)</span></label>
         </div>
 
         <div class="step" id="blk-invoice"><h3><i>3</i> How to pay</h3>
@@ -141,7 +142,7 @@
   <section id="p-saved" class="hidden">
     <div class="flex-between" style="flex-wrap:wrap;gap:12px;margin-bottom:10px;">
       <h2 class="mb-0">Saved documents</h2>
-      <input type="search" id="saved-q" placeholder="Search number or name…" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;min-width:240px;" />
+      <select id="saved-season" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;"></select><input type="search" id="saved-q" placeholder="Search number or name…" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;min-width:240px;" />
     </div>
     <div class="table-wrap"><table>
       <thead><tr><th>Number</th><th>Type</th><th>Name</th><th>Category</th><th>Date</th><th class="right">Amount</th><th></th></tr></thead>
@@ -157,7 +158,9 @@
 <script src="js/site.js"></script>
 <script src="js/invoice.js"></script>
 <script src="js/doc-pdf.js"></script>
+<script src="js/statement.js"></script>
 <script src="js/admin-documents.js"></script>
 <script src="js/pwa.js"></script>
+<script src="js/kr-boost.js" defer></script>
 </body>
 </html>
