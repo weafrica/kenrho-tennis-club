@@ -15,6 +15,11 @@
     s1.onload = function () { load("config.js", function () { load("supabaseClient.js", cb); }); };
     document.head.appendChild(s1);
   }
+  // close the mobile menu as soon as one of its buttons is tapped
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest(".nav-links a, .nav-links button");
+    if (a) document.querySelectorAll(".nav-links.open").forEach(function (n) { n.classList.remove("open"); });
+  });
   function go() {
     needClient(function () {
       load("auth-ui.js");

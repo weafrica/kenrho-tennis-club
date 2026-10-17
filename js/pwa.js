@@ -18,10 +18,9 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   if (isStandalone) store.set("kr_installed", "1");
 
   function startVoiceDownload() {
-    // The app is installed: fetch the natural voice in the background (runs in a worker, never freezes the page).
+    // The app has just been installed: begin preparing the natural voice straight away (background worker, never freezes the page).
     store.set("kr_installed", "1");
-    var tryStart = function () { if (window.KR_VOICE) window.KR_VOICE.preload(); else setTimeout(tryStart, 1500); };
-    setTimeout(tryStart, 2500);
+    if (window.KR_VOICE) window.KR_VOICE.preload(); else window.addEventListener("load", function () { if (window.KR_VOICE) window.KR_VOICE.preload(); });
   }
 
   function modal(html) {
@@ -65,7 +64,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     var b = document.getElementById("pwa-install-btn"); if (b) b.remove(); closePop(false); deferred = null; startVoiceDownload();
   });
   window.addEventListener("load", function () {
-    if (isStandalone) { if (store.get("kr_voice_auto") !== "off") startVoiceDownload(); return; }
+    if (isStandalone) return;   // the voice engine starts itself when the app opens
     if (isInApp || isIOS) setTimeout(offer, 4000);
   });
 })();

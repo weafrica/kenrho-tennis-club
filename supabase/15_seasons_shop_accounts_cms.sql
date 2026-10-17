@@ -6,3 +6,9 @@
 --  * accounts mapped to the club's statement lines; fs_cum(), ledger_lines(), fs_comparatives (FY2025-26)
 --  * site_content (website editor) + 'coach' role; site-media bucket
 --  * integrations / register_export() / pg_cron job "kr-sheet-sync" for the Google Sheet
+-- Round 3 (migration "edit_log_fundraiser_rollover_source"):
+--  * Tasneem Essop (tasneem.essop0@gmail.com) added as admin
+--  * site_edit_log / site_edit_comments / site_text_index + site_undo() / site_set_reason()  (tracked, undoable website edits)
+--  * fundraisers / fundraiser_pledges + submit_pledge(), fundraiser_public(), confirm_pledge(), reject_pledge()
+--  * auto_season_rollover() on pg_cron "kr-season-rollover" (00:10 SAST daily; first automatic roll-over 1 July 2027, see integrations.season_auto_from)
+--  * register_source_info() / set_register_source()  (optional link to the treasurer's Google Sheet)

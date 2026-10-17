@@ -74,7 +74,7 @@
     return h;
   }
 
-  async function pdf(s) {
+  async function pdf(s, opts) {
     const { jsPDF } = window.jspdf, p = new jsPDF({ unit: "mm", format: "a4" });
     const c = calc(s), inv = s.type === "invoice", L = inv ? "Invoice" : "Receipt";
     let logo = null; try { logo = await window.KR_PDF.loadLogoDataUrl(); } catch (e) {}
@@ -123,7 +123,9 @@
       text("Signature: ______________________________", { gap: 10 });
       text(`Club Treasurer: ${s.treasurer}`, { gap: 2 }); text(`Contact: ${s.contact}`);
     }
-    p.save(`${(s.number || L).replace(/[^\w-]+/g, "_")}.pdf`);
+    var name = `${(s.number || L).replace(/[^\w-]+/g, "_")}.pdf`;
+    if (opts && opts.blob) return { blob: p.output("blob"), name: name };
+    p.save(name);
   }
 
   window.KR_DOC = { CATS, DEFAULT_FEES, DEFAULT_PAY, DEFAULT_METHODS, DEFAULT_NOTES_INV, blank, calc, fmtR, fmtDate, esc, previewHtml, pdf };

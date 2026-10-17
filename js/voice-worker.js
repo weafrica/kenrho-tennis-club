@@ -1,6 +1,7 @@
 // Natural ("HD") voice engine. Runs in a Web Worker so loading and speaking never freeze the page.
+// The model is stored in the browser's cache after the first download, so it is only ever downloaded once.
 var MODEL = "onnx-community/Kokoro-82M-v1.0-ONNX";
-var tts = null, loading = null;
+var tts = null, loading = null, chain = Promise.resolve();
 function load() {
   if (tts) return Promise.resolve(tts);
   if (!loading) {
@@ -23,14 +24,14 @@ function load() {
   }
   return loading;
 }
-self.onmessage = async function (e) {
+self.onmessage = function (e) {
   var m = e.data || {};
-  try {
-    if (m.type === "load") { await load(); self.postMessage({ type: "ready" }); }
-    else if (m.type === "speak") {
-      var engine = await load();
-      var audio = await engine.generate(m.text, { voice: m.voice || "af_heart" });
-      self.postMessage({ type: "audio", id: m.id, blob: audio.toBlob() });
-    }
-  } catch (err) { self.postMessage({ type: "error", id: m.id, message: String((err && err.message) || err) }); }
+  if (m.type === "load") {
+    load().then(function () { self.postMessage({ type: "ready" }); }, function (err) { self.postMessage({ type: "error", message: String((err && err.message) || err) }); });
+  } else if (m.type === "speak") {
+    // one sentence at a time, in order, so the engine is never asked to do two things at once
+    chain = chain.then(function () { return load(); }).then(function (engine) { return engine.generate(m.text, { voice: m.voice || "af_heart" }); })
+      .then(function (audio) { self.postMessage({ type: "audio", id: m.id, blob: audio.toBlob() }); })
+      .catch(function (err) { self.postMessage({ type: "error", id: m.id, message: String((err && err.message) || err) }); });
+  }
 };

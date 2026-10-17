@@ -83,30 +83,52 @@
   }
   var fname = function (st) { return "Statement_" + (st.member.no || st.member.name).replace(/[^\w-]+/g, "_") + "_" + st.season + ".pdf"; };
   function download(blob, name) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
-  async function share(st) {
-    var blob = await pdf(st), name = fname(st), file = new File([blob], name, { type: "application/pdf" });
-    var subject = "KenRho Park — Statement of account (" + st.season + ")";
-    var body = "Dear " + st.member.name.split(" ")[0] + ",\n\nPlease find your statement of account attached." + (st.totals.balance > 0.005 ? "\nBalance due: " + R(st.totals.balance) + "." : st.totals.balance < -0.005 ? "\nYou are in credit by " + R(-st.totals.balance) + "." : "\nYour account is paid up.") + "\n\nKind regards,\nKenRho Park Tennis Club treasurer";
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: subject, text: body }); return "shared"; } catch (e) { if (e && e.name === "AbortError") return "cancelled"; }
-    }
-    download(blob, name);
-    location.href = "mailto:" + encodeURIComponent(st.member.email || "") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body + "\n\n(The PDF has been downloaded — please attach it to this email.)");
-    return "emailed";
+  // ---------------------------------------------------------------- email / share helper (statements, invoices, receipts)
+  var CLUB_EMAIL = "kenrhoparktennisclub@gmail.com";
+  function treasurerName() {
+    return sb().from("profiles").select("full_name").eq("role", "treasurer").limit(1).then(function (r) { return (r.data && r.data[0] && r.data[0].full_name) || "The Treasurer"; }, function () { return "The Treasurer"; });
   }
+  function signature(name) { return "Kind regards,\n" + name + "\nTreasurer, KenRho Park Tennis Club\n" + CLUB_EMAIL; }
+  // opts: { title, blob, filename, to, memberName, subject, intro, summaryHtml }
+  async function mailDialog(opts) {
+    var tname = await treasurerName(), first = (opts.memberName || "").split(" ")[0] || "there";
+    var body = "Dear " + first + ",\n\n" + opts.intro + "\n\n" + signature(tname);
+    var d = document.createElement("div"); d.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2147483100;display:flex;align-items:center;justify-content:center;padding:14px";
+    var inp = "width:100%;padding:9px 10px;border:1.5px solid #dfe6d3;border-radius:8px;font:inherit;margin:3px 0 8px";
+    d.innerHTML = '<div style="background:#fff;color:#1b2a17;border-radius:16px;max-width:440px;width:100%;max-height:92vh;overflow:auto;padding:18px;font:15px/1.45 system-ui,sans-serif"><div style="font-weight:800;font-size:1.1rem">' + opts.title + '</div><div style="color:#5d6b57;margin:2px 0 10px">' + (opts.memberName || "") + "</div>" + (opts.summaryHtml || "") +
+      '<label style="font-size:.78rem;color:#5d6b57">To (member)</label><input id="km-to" type="email" style="' + inp + '" value="' + (opts.to || "") + '" placeholder="member@email.com"><label style="font-size:.78rem;color:#5d6b57">Copy (club)</label><input id="km-cc" type="email" style="' + inp + '" value="' + CLUB_EMAIL + '">' +
+      '<label style="font-size:.78rem;color:#5d6b57">Message (ends with the treasurer\'s name)</label><textarea id="km-body" rows="7" style="' + inp + '">' + body.replace(/</g, "&lt;") + '</textarea>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button data-a="mail" style="flex:1;background:#3c7a2e;color:#fff;border:0;border-radius:99px;padding:11px;font:700 .9rem system-ui;cursor:pointer">📧 Email (addresses filled in)</button><button data-a="share" style="flex:1;background:#fff;border:1px solid #dfe6d3;border-radius:99px;padding:11px;font:700 .9rem system-ui;cursor:pointer">Share PDF…</button><button data-a="dl" style="flex:1;background:#fff;border:1px solid #dfe6d3;border-radius:99px;padding:11px;font:700 .9rem system-ui;cursor:pointer">Download</button></div>' +
+      '<p style="font-size:.78rem;color:#6b7a63;margin:8px 0 0">Email opens a draft to the member with the club copied in. The PDF is downloaded first, so attach it to the draft. “Share PDF” sends the file straight to Gmail, Outlook or WhatsApp.</p><button data-a="x" style="display:block;margin:6px auto 0;background:none;border:0;color:#5d6b57;cursor:pointer">Close</button></div>';
+    document.body.appendChild(d);
+    d.addEventListener("click", async function (e) {
+      var a = e.target.dataset && e.target.dataset.a; if (e.target === d || a === "x") return d.remove(); if (!a) return;
+      var to = d.querySelector("#km-to").value.trim(), cc = d.querySelector("#km-cc").value.trim(), text = d.querySelector("#km-body").value;
+      if (a === "dl") return download(opts.blob, opts.filename);
+      if (a === "share") {
+        var file = new File([opts.blob], opts.filename, { type: "application/pdf" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: opts.subject, text: text }); } catch (er) {} }
+        else { download(opts.blob, opts.filename); window.KR && window.KR.toast("This device can't share files directly. The PDF was downloaded — use Email instead.", "warn"); }
+        return;
+      }
+      if (a === "mail") {
+        download(opts.blob, opts.filename);
+        location.href = "mailto:" + encodeURIComponent(to) + "?cc=" + encodeURIComponent(cc) + "&subject=" + encodeURIComponent(opts.subject) + "&body=" + encodeURIComponent(text + "\n\n(The PDF was downloaded — please attach " + opts.filename + ".)");
+      }
+    });
+  }
+  window.KR_MAIL = { dialog: mailDialog, signature: signature, treasurerName: treasurerName, CLUB_EMAIL: CLUB_EMAIL };
+
   window.KR_STMT = {
     build: build, pdf: pdf, filename: fname,
     download: async function (st) { download(await pdf(st), fname(st)); },
-    share: share,
-    // one call for the buttons: opens a small dialog with Download / Share
     open: async function (standingId) {
       var st; try { st = await build(standingId); } catch (e) { return window.KR && window.KR.toast(e.message, "error"); }
-      var d = document.createElement("div"); d.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2147483100;display:flex;align-items:center;justify-content:center;padding:14px";
-      var bal = st.totals.balance;
-      d.innerHTML = '<div style="background:#fff;color:#1b2a17;border-radius:16px;max-width:420px;width:100%;padding:18px;font:15px/1.45 system-ui,sans-serif"><div style="font-weight:800;font-size:1.1rem">Statement of account</div><div style="color:#5d6b57;margin:2px 0 10px">' + st.member.name + " · " + st.season + '</div><div style="background:#eef6d9;border-radius:10px;padding:10px 12px;margin-bottom:12px">Charged <b>' + R(st.totals.charged) + "</b> · Paid <b>" + R(st.totals.paid) + "</b><br>" + (bal > 0.005 ? "Balance due <b>" + R(bal) + "</b>" : bal < -0.005 ? "In credit <b>" + R(-bal) + "</b>" : "<b>Paid up</b>") + "</div>" +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap"><button data-a="share" style="flex:1;background:#3c7a2e;color:#fff;border:0;border-radius:99px;padding:11px;font:700 .9rem system-ui;cursor:pointer">Share / email</button><button data-a="dl" style="flex:1;background:#fff;border:1px solid #dfe6d3;border-radius:99px;padding:11px;font:700 .9rem system-ui;cursor:pointer">Download PDF</button></div><button data-a="x" style="display:block;margin:10px auto 0;background:none;border:0;color:#5d6b57;cursor:pointer">Close</button></div>';
-      document.body.appendChild(d);
-      d.addEventListener("click", async function (e) { var a = e.target.dataset && e.target.dataset.a; if (e.target === d || a === "x") return d.remove(); if (a === "dl") await window.KR_STMT.download(st); if (a === "share") await share(st); });
+      var bal = st.totals.balance, blob = await pdf(st);
+      var bt = bal > 0.005 ? "Balance due: " + R(bal) + "." : bal < -0.005 ? "You are in credit by " + R(-bal) + "." : "Your account is paid up.";
+      mailDialog({ title: "Statement of account", blob: blob, filename: fname(st), to: st.member.email || "", memberName: st.member.name,
+        subject: "KenRho Park — Statement of account (" + st.season + ")", intro: "Please find your statement of account for the " + st.season + " season attached.\n" + bt,
+        summaryHtml: '<div style="background:#eef6d9;border-radius:10px;padding:10px 12px;margin-bottom:10px">Charged <b>' + R(st.totals.charged) + "</b> · Paid <b>" + R(st.totals.paid) + "</b><br>" + (bal > 0.005 ? "Balance due <b>" + R(bal) + "</b>" : bal < -0.005 ? "In credit <b>" + R(-bal) + "</b>" : "<b>Paid up</b>") + "</div>" });
     },
   };
 })();

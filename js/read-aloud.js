@@ -1,36 +1,43 @@
-// KenRho Park — read aloud (v3)
-// Any button with  data-read-aloud="element-id"  reads that element out. Voice tiers (each falls back to the next):
-//   1. PRE-RECORDED  data-audio="audio/welcome.mp3"  (cached on the device)
-//   2. HD VOICE      natural neural voice (Kokoro) running in a Web Worker, so the page never freezes.
-//                    It downloads automatically in the background once the app is installed (or when the
-//                    person turns it on), is cached, and is used as soon as it's ready.
-//   3. BROWSER VOICE the best voice the device ships; used instantly while HD is still downloading.
+// KenRho Park — read aloud (v5)
+// WEBSITE (browser tab): reads with the phone / computer's own voice — instant, nothing to download.
+// INSTALLED APP: uses the natural (HD) voice. It starts preparing the moment the app opens (same time as the page), in a
+// background worker so nothing freezes, and is saved on the phone after the first download.
+// Any button with  data-read-aloud="element-id"  reads that element out. Voice tiers:
+//   1. PRE-RECORDED  data-audio="audio/welcome.mp3"
+//   2. NATURAL VOICE (Kokoro) — downloads ONCE, automatically, in a background worker; saved on the phone and reused
+//      forever. It never blocks the page. If a sentence is slow, the phone's own voice covers it so there is no silence.
+//   3. PHONE VOICE   data-voice="system" forces this tier (used by Help me). Also the instant fallback.
+// Reading is queued as whole passages, so it does not stop at every full stop.
 (function () {
   "use strict";
   window.__krReadAloud = true;
   var synth = window.speechSynthesis || null;
-  var HD_KEY = "kr_hd_voice", AUTO_KEY = "kr_voice_auto", READY_KEY = "kr_hd_ready", AUDIO_CACHE = "kr-audio-v1";
-  var HD_VOICE = window.KR_HD_VOICE_NAME || "af_heart";
+  var READY_KEY = "kr_hd_ready", AUDIO_CACHE = "kr-audio-v1", HD_VOICE = window.KR_HD_VOICE_NAME || "af_heart";
   var me = document.currentScript || document.querySelector('script[src*="read-aloud.js"]');
   var WORKER_URL = (me && me.src ? me.src.replace(/read-aloud\.js.*$/, "") : "js/") + "voice-worker.js";
   var ls = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+  var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+  function isApp() { return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true; }
+  var player = new Audio(), session = 0, cancelPlay = null, current = null, cachedVoice = null, live = [], stallTimer = null, keepAlive = null;
 
-  var player = new Audio(), session = 0, cancelPlay = null, current = null, cachedVoice = null;
-
-  // ------------------------------------------------------------- HD voice worker (never blocks the page)
-  var worker = null, hdState = ls.get(READY_KEY) === "1" ? "cached" : "idle"; // idle | loading | ready | cached | failed
-  var pending = {}, nextId = 1, pct = 0, pill = null;
+  // ------------------------------------------------------------- natural voice: one download, then reuse
+  var worker = null, hdState = "idle"; // idle | loading | ready | failed
+  var pending = {}, nextId = 1, pill = null, firstDownload = false;
   function lowEnd() {
     var c = navigator.connection || {};
-    return !!(c.saveData || /(^|-)2g$/.test(c.effectiveType || "") || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory < 4) || typeof Worker === "undefined");
+    return !!(c.saveData || /(^|-)2g$/.test(c.effectiveType || "") || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory < 3) || typeof Worker === "undefined");
+  }
+  function hasModelCache() {
+    if (!("caches" in window)) return Promise.resolve(false);
+    return caches.keys().then(function (ks) { return ks.some(function (k) { return /transformers/i.test(k); }); }).catch(function () { return false; });
   }
   function ensureWorker() {
     if (worker || hdState === "failed") return worker;
     try { worker = new Worker(WORKER_URL, { type: "module" }); } catch (e) { hdState = "failed"; return null; }
     worker.onmessage = function (e) {
       var m = e.data || {};
-      if (m.type === "progress") { pct = m.pct; showPill("Downloading natural voice " + pct + "%"); }
-      else if (m.type === "ready") { hdState = "ready"; ls.set(READY_KEY, "1"); showPill("Natural voice ready ✓", 3500); }
+      if (m.type === "progress") { if (firstDownload) showPill("Preparing natural voice " + m.pct + "%"); }
+      else if (m.type === "ready") { hdState = "ready"; ls.set(READY_KEY, "1"); hidePill(); }
       else if (m.type === "audio" && pending[m.id]) { pending[m.id].resolve(m.blob); delete pending[m.id]; }
       else if (m.type === "error") {
         if (m.id && pending[m.id]) { pending[m.id].reject(new Error(m.message)); delete pending[m.id]; }
@@ -40,104 +47,93 @@
     worker.onerror = function () { hdState = "failed"; hidePill(); };
     return worker;
   }
-  function preload() {
+  // start (or resume) preparing the voice; silent when it is already saved on the device
+  function prepare(force) {
+    if (!force && !isApp()) return;   // the website uses the phone's voice; only the installed app prepares the natural one
     if (lowEnd() || hdState === "ready" || hdState === "loading" || hdState === "failed") return;
     if (!ensureWorker()) return;
-    hdState = "loading"; ls.set(HD_KEY, "1");
+    hdState = "loading"; firstDownload = ls.get(READY_KEY) !== "1";
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
-    showPill("Downloading natural voice…");
+    if (firstDownload) showPill("Preparing natural voice…");
     worker.postMessage({ type: "load" });
   }
-  function hdUsable() { return ls.get(HD_KEY) === "1" && (hdState === "ready" || hdState === "cached") && !!ensureWorker(); }
   function synthHD(text) {
     return new Promise(function (resolve, reject) {
       var w = ensureWorker(); if (!w) return reject(new Error("no worker"));
-      var id = nextId++; pending[id] = { resolve: resolve, reject: reject };
-      w.postMessage({ type: "speak", id: id, text: text, voice: HD_VOICE });
+      var id = nextId++; pending[id] = { resolve: resolve, reject: reject }; w.postMessage({ type: "speak", id: id, text: text, voice: HD_VOICE });
     });
   }
-  function showPill(text, ms) {
-    if (!pill) {
-      pill = document.createElement("div");
-      pill.style.cssText = "position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:78;background:#1f3d1a;color:#fff;font:600 .78rem system-ui,sans-serif;padding:7px 12px;border-radius:99px;box-shadow:0 6px 16px rgba(0,0,0,.25);max-width:80vw;pointer-events:none";
-      document.body.appendChild(pill);
-    }
-    pill.textContent = text; pill.style.display = "block";
-    if (ms) setTimeout(hidePill, ms);
+  function showPill(t) {
+    if (!pill) { pill = document.createElement("div"); pill.style.cssText = "position:fixed;left:12px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:78;background:#1f3d1a;color:#fff;font:600 .78rem system-ui,sans-serif;padding:7px 12px;border-radius:99px;box-shadow:0 6px 16px rgba(0,0,0,.25);pointer-events:none"; (document.body || document.documentElement).appendChild(pill); }
+    pill.textContent = t; pill.style.display = "block";
   }
   function hidePill() { if (pill) pill.style.display = "none"; }
-  window.KR_VOICE = {
-    preload: preload,
-    status: function () { return { state: hdState, pct: pct, auto: ls.get(AUTO_KEY) !== "off", lowEnd: lowEnd() }; },
-    setAuto: function (on) { ls.set(AUTO_KEY, on ? "on" : "off"); if (on) preload(); },
-  };
+  window.KR_VOICE = { preload: function () { prepare(true); }, status: function () { return { state: hdState, lowEnd: lowEnd(), app: isApp() }; } };
 
   // ------------------------------------------------------------- helpers
   function setState(btn, state, extra) {
     var label = btn.getAttribute("data-label") || "Read aloud";
     var map = { idle: ["🔊", label], loading: ["⏳", extra || "Preparing…"], speaking: ["⏸", "Pause"], paused: ["▶", "Resume"] };
-    var m = map[state] || map.idle;
-    btn.innerHTML = m[0] + " " + m[1]; btn.dataset.state = state; btn.setAttribute("aria-label", m[1]);
+    var m = map[state] || map.idle; btn.innerHTML = m[0] + " " + m[1]; btn.dataset.state = state; btn.setAttribute("aria-label", m[1]);
   }
   function cleanText(el) { return (el.innerText || el.textContent || "").replace(/\s+/g, " ").trim(); }
-  function toChunks(text) {
-    var sentences = text.match(/[^.!?…]+[.!?…]+["')\]]*\s*|[^.!?…]+$/g) || [text], out = [];
+  // whole passages: a few sentences per piece, queued together so the voice flows
+  function toChunks(text, max) {
+    var sentences = text.match(/[^.!?…]+[.!?…]+["')\]]*\s*|[^.!?…]+$/g) || [text], out = [], cur = "";
     sentences.forEach(function (s) {
-      s = s.trim();
-      while (s.length > 220) {
-        var cut = s.lastIndexOf(",", 220); if (cut < 80) cut = s.lastIndexOf(" ", 220); if (cut < 40) cut = 220;
-        out.push(s.slice(0, cut + 1).trim()); s = s.slice(cut + 1).trim();
-      }
-      if (s) out.push(s);
+      s = s.trim(); if (!s) return;
+      if (cur && (cur + " " + s).length > max) { out.push(cur); cur = ""; }
+      while (s.length > max) { var cut = s.lastIndexOf(",", max); if (cut < 60) cut = s.lastIndexOf(" ", max); if (cut < 30) cut = max; cur = (cur ? cur + " " : "") + s.slice(0, cut + 1).trim(); out.push(cur); cur = ""; s = s.slice(cut + 1).trim(); }
+      cur = cur ? cur + " " + s : s;
     });
-    return out;
+    if (cur) out.push(cur); return out;
   }
 
-  // ------------------------------------------------------------- browser voice
+  // ------------------------------------------------------------- phone voice
   function scoreVoice(v) {
     var n = (v.name || "").toLowerCase(), l = (v.lang || "").toLowerCase().replace("_", "-");
     if (l.indexOf("en") !== 0) return -1000;
     var s = 0;
-    if (/online \(natural\)|neural|natural/.test(n)) s += 100;
-    if (/premium|enhanced/.test(n)) s += 85;
-    if (/siri/.test(n)) s += 70;
-    if (/google/.test(n)) s += 60;
-    if (/samantha|daniel|karen|moira|tessa|serena|jenny|aria|leah|libby|sonia/.test(n)) s += 35;
-    if (/espeak|compact|novelty|zarvox|whisper|bad news|bells|boing/.test(n)) s -= 80;
-    if (l === "en-za") s += 30; else if (l === "en-gb") s += 20; else if (l === "en-us") s += 15;
-    if (v.localService) s += 4;
-    return s;
+    if (/online \(natural\)|neural|natural/.test(n)) s += 100; if (/premium|enhanced/.test(n)) s += 85; if (/siri/.test(n)) s += 70; if (/google/.test(n)) s += 60;
+    if (/samantha|daniel|karen|moira|tessa|serena|jenny|aria|leah|libby|sonia/.test(n)) s += 35; if (/espeak|compact|novelty|zarvox|whisper|bad news|bells|boing/.test(n)) s -= 80;
+    if (l === "en-za") s += 30; else if (l === "en-gb") s += 20; else if (l === "en-us") s += 15; if (v.localService) s += 4; return s;
   }
-  function bestVoice() {
-    if (!synth) return null; var voices = synth.getVoices(); if (!voices.length) return null;
-    var best = null, bs = -Infinity; voices.forEach(function (v) { var sc = scoreVoice(v); if (sc > bs) { best = v; bs = sc; } }); return best;
-  }
+  function bestVoice() { if (!synth) return null; var vs = synth.getVoices(); if (!vs.length) return null; var b = null, bs = -Infinity; vs.forEach(function (v) { var sc = scoreVoice(v); if (sc > bs) { b = v; bs = sc; } }); return b; }
   function getVoice() { return cachedVoice || (cachedVoice = bestVoice()); }
   if (synth && synth.addEventListener) synth.addEventListener("voiceschanged", function () { cachedVoice = bestVoice(); });
-  function speakChunk(text) {
-    return new Promise(function (resolve, reject) {
-      var u = new SpeechSynthesisUtterance(text), v = getVoice();
-      if (v) { u.voice = v; u.lang = v.lang; } u.rate = 0.97; u.pitch = 1;
-      u.onend = function () { resolve(); };
-      u.onerror = function (e) { if (e && (e.error === "canceled" || e.error === "interrupted")) resolve("cancelled"); else reject(e); };
-      synth.speak(u);
+  if (synth) { try { synth.cancel(); } catch (e) {} }   // wakes a sleeping engine (first speak() on desktop can be swallowed)
+  function clearTimers() { clearTimeout(stallTimer); stallTimer = null; if (keepAlive) { clearInterval(keepAlive); keepAlive = null; } }
+  function speakOne(text) {
+    return new Promise(function (resolve) {
+      var u = new SpeechSynthesisUtterance(text), v = getVoice(); if (v) { u.voice = v; u.lang = v.lang; } u.rate = 0.97; live.push(u);
+      var done = false, fin = function () { if (!done) { done = true; clearTimeout(t); resolve(); } }, t = setTimeout(fin, text.length * 90 + 4000);
+      u.onend = fin; u.onerror = fin; synth.speak(u);
     });
   }
-  async function runBrowser(btn, chunks, start, my) {
-    for (var i = start; i < chunks.length; i++) {
-      if (my !== session) return; current.index = i;
-      try { await speakChunk(chunks[i]); } catch (e) { break; }
-    }
-    if (my === session) finish(btn);
+  // queue every chunk at once so the engine never waits for us between sentences
+  function runBrowser(btn, chunks, start, my) {
+    if (!synth) { finish(btn); return; }
+    synth.cancel(); clearTimers(); live = [];
+    chunks.slice(start).forEach(function (t, k) {
+      var idx = start + k, last = idx === chunks.length - 1, u = new SpeechSynthesisUtterance(t), v = getVoice();
+      if (v) { u.voice = v; u.lang = v.lang; } u.rate = 0.97; u.pitch = 1; live.push(u);
+      u.onstart = function () {
+        if (my !== session) return; current.index = idx; clearTimeout(stallTimer);
+        // if the engine goes quiet without telling us (a known browser bug), carry on from the next piece
+        stallTimer = setTimeout(function () { if (my === session && !current.paused) runBrowser(btn, chunks, idx + 1, my); }, t.length * 95 + 5000);
+      };
+      u.onend = function () { if (my === session && last) { clearTimers(); finish(btn); } };
+      u.onerror = function (e) { if (e && (e.error === "canceled" || e.error === "interrupted")) return; if (my === session && last) { clearTimers(); finish(btn); } };
+      synth.speak(u);
+    });
+    if (!isMobile) keepAlive = setInterval(function () { if (my !== session) return clearTimers(); if (current && current.paused) return; if (synth.speaking) { synth.pause(); synth.resume(); } }, 5000);
   }
 
-  // ------------------------------------------------------------- audio files / HD playback
+  // ------------------------------------------------------------- recorded audio / natural voice playback
   function playUrl(url) {
     return new Promise(function (resolve, reject) {
-      player.onended = function () { cancelPlay = null; resolve(); };
-      player.onerror = function () { cancelPlay = null; reject(new Error("audio error")); };
-      cancelPlay = function () { cancelPlay = null; resolve("cancelled"); };
-      player.src = url; var p = player.play(); if (p && p.catch) p.catch(function (e) { cancelPlay = null; reject(e); });
+      player.onended = function () { cancelPlay = null; resolve(); }; player.onerror = function () { cancelPlay = null; reject(new Error("audio error")); };
+      cancelPlay = function () { cancelPlay = null; resolve("cancelled"); }; player.src = url; var p = player.play(); if (p && p.catch) p.catch(function (e) { cancelPlay = null; reject(e); });
     });
   }
   async function cachedFileUrl(url) {
@@ -146,82 +142,60 @@
     if (!res) { var fresh = await fetch(url); if (!fresh.ok) throw new Error("missing"); await cache.put(url, fresh.clone()); res = fresh; }
     return URL.createObjectURL(await res.blob());
   }
-  async function runFile(btn, src, my) {
-    var url = await cachedFileUrl(src); if (my !== session) return;
-    current.mode = "audio"; setState(btn, "speaking");
-    var r = await playUrl(url); if (r !== "cancelled" && my === session) finish(btn);
-  }
+  async function runFile(btn, src, my) { var url = await cachedFileUrl(src); if (my !== session) return; current.mode = "audio"; setState(btn, "speaking"); var r = await playUrl(url); if (r !== "cancelled" && my === session) finish(btn); }
+  // natural voice with a safety net: if a sentence takes too long, the phone voice reads it so there is never a long silence
   async function runHD(btn, chunks, start, my) {
-    current.mode = "hd"; setState(btn, "loading", "Preparing…");
-    var next = synthHD(chunks[start]);
+    current.mode = "hd"; setState(btn, "speaking");
+    var jobs = {}, ahead = 3;
+    var request = function (i) { if (i < chunks.length && !jobs[i]) { jobs[i] = synthHD(chunks[i]); jobs[i].catch(function () {}); } };
+    for (var k = 0; k < ahead; k++) request(start + k);
     for (var i = start; i < chunks.length; i++) {
+      if (my !== session) return; current.index = i; request(i + ahead);
+      var blob = await Promise.race([jobs[i].catch(function () { return null; }), new Promise(function (r) { setTimeout(function () { r(null); }, i === start ? 9000 : 6000); })]);
       if (my !== session) return;
-      var blob = await next; if (my !== session) return;
-      current.index = i; if (i + 1 < chunks.length) next = synthHD(chunks[i + 1]);
-      setState(btn, "speaking");
-      var r = await playUrl(URL.createObjectURL(blob)); if (r === "cancelled") return;
+      if (blob) { var r = await playUrl(URL.createObjectURL(blob)); if (r === "cancelled") return; }
+      else if (synth) { await speakOne(chunks[i]); if (my !== session) return; }
     }
     if (my === session) finish(btn);
   }
 
-  // ------------------------------------------------------------- one-time offer (non-installed visitors)
-  function maybeOfferHD(btn) {
-    if (ls.get(HD_KEY) || lowEnd() || document.getElementById("kr-hd-offer")) return;
-    var box = document.createElement("div"); box.id = "kr-hd-offer"; box.setAttribute("role", "dialog");
-    box.style.cssText = "margin-top:10px;padding:12px 14px;border-radius:10px;background:#eef6d9;color:#1f3d1a;font-size:.88rem;line-height:1.4;max-width:420px;";
-    box.innerHTML = "<strong>Want a more natural voice?</strong><br>It downloads about 90&nbsp;MB once in the background (best on Wi-Fi) and your phone keeps working normally." +
-      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" class="btn btn-primary btn-sm" data-hd="yes">Get natural voice</button><button type="button" class="btn btn-outline btn-sm" data-hd="no">No thanks</button></div>';
-    btn.insertAdjacentElement("afterend", box);
-    box.addEventListener("click", function (e) {
-      var t = e.target.closest("[data-hd]"); if (!t) return;
-      if (t.dataset.hd === "yes") { ls.set(AUTO_KEY, "on"); preload(); } else ls.set(HD_KEY, "no");
-      box.remove();
-    });
-  }
-
-  // ------------------------------------------------------------- control flow
-  function stopAll() {
-    session++; if (synth) synth.cancel(); try { player.pause(); } catch (e) {} if (cancelPlay) cancelPlay();
-    if (current && current.btn) setState(current.btn, "idle"); current = null;
-  }
-  function finish(btn) { if (current && current.btn === btn) { setState(btn, "idle"); current = null; } }
-
+  // ------------------------------------------------------------- control
+  function stopAll() { session++; clearTimers(); if (synth) synth.cancel(); try { player.pause(); } catch (e) {} if (cancelPlay) cancelPlay(); if (current && current.btn) setState(current.btn, "idle"); current = null; }
+  function finish(btn) { if (current && current.btn === btn) { setState(btn, "idle"); current = null; } clearTimers(); }
   async function handleClick(btn) {
     var el = document.getElementById(btn.getAttribute("data-read-aloud")); if (!el) return;
     if (current && current.btn === btn) {
       if (btn.dataset.state === "speaking") {
-        if (current.mode === "browser") { session++; if (synth) synth.cancel(); } else player.pause();
         current.paused = true; setState(btn, "paused");
+        if (current.mode === "browser") { if (isMobile) { session++; clearTimers(); synth.cancel(); } else synth.pause(); } else player.pause();
       } else if (btn.dataset.state === "paused") {
         current.paused = false; setState(btn, "speaking");
-        if (current.mode === "browser") { var my2 = ++session; runBrowser(btn, current.chunks, current.index, my2); } else player.play();
+        if (current.mode === "browser") { if (isMobile) runBrowser(btn, current.chunks, current.index, ++session); else synth.resume(); } else player.play();
       }
       return;
     }
     stopAll();
-    var my = ++session, chunks = toChunks(cleanText(el)); if (!chunks.length) return;
-    current = { btn: btn, mode: "browser", chunks: chunks, index: 0, paused: false };
+    var my = ++session, text = cleanText(el); if (!text) return;
+    var forceSystem = btn.getAttribute("data-voice") === "system", src = btn.getAttribute("data-audio") || el.getAttribute("data-audio");
+    var useHD = !forceSystem && !src && isApp() && hdState === "ready" && !!ensureWorker();   // browser tab = phone voice, installed app = natural voice
+    var chunks = toChunks(text, useHD ? 240 : 380);
+    current = { btn: btn, mode: useHD ? "hd" : "browser", chunks: chunks, index: 0, paused: false };
     setState(btn, "loading");
-    var src = btn.getAttribute("data-audio") || el.getAttribute("data-audio");
     if (src) { try { await runFile(btn, src, my); return; } catch (e) { if (my !== session) return; } }
-    if (hdUsable()) { try { await runHD(btn, chunks, 0, my); return; } catch (e) { if (my !== session) return; console.warn("HD voice unavailable, using browser voice", e); } }
-    if (!synth) { setState(btn, "idle"); current = null; return; }
+    if (useHD) { try { await runHD(btn, chunks, 0, my); return; } catch (e) { if (my !== session) return; } }
     current.mode = "browser"; setState(btn, "speaking"); runBrowser(btn, chunks, 0, my);
-    if (!ls.get(HD_KEY)) maybeOfferHD(btn);
   }
   document.addEventListener("click", function (e) { var b = e.target.closest("[data-read-aloud]"); if (b) handleClick(b); });
-  window.KR_READ = { init: function (b) { setState(b, "idle"); } };
+  window.KR_READ = { init: function (b) { setState(b, "idle"); }, stop: stopAll };
   function init() { document.querySelectorAll("[data-read-aloud]").forEach(function (b) { setState(b, "idle"); }); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
   window.addEventListener("pagehide", stopAll);
 
-  // Installed app (or opted in earlier): fetch the natural voice quietly in the background.
-  window.addEventListener("load", function () {
-    var auto = ls.get(AUTO_KEY) !== "off";
-    var installed = ls.get("kr_installed") === "1" || window.matchMedia("(display-mode: standalone)").matches;
-    if (auto && (installed || ls.get(HD_KEY) === "1") && hdState !== "ready") {
-      var go = function () { hdState === "cached" ? ensureWorker() && worker.postMessage({ type: "load" }) : preload(); };
-      if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 6000 }); else setTimeout(go, 3000);
-    }
-  });
+  // Installed app: start preparing the natural voice immediately — at the same time as the page loads (it runs in a worker, so the
+  // page is never blocked). First launch downloads it (about 90 MB); every launch after that just reuses the saved copy.
+  window.addEventListener("appinstalled", function () { prepare(true); });
+  if (isApp() && !lowEnd()) {
+    prepare(true);
+    hasModelCache().then(function (cached) { if (cached) ls.set(READY_KEY, "1"); });
+  }
 })();

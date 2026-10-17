@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Fundraiser — KenRho Park Tennis Club</title>
+<meta name="description" content="Support KenRho Park Tennis Club. Give by EFT or at the clubhouse and see how the fundraiser is going." />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  #kr-fund-app .box{background:#fff;border:1px solid var(--line,#dfe6d3);border-radius:16px;padding:18px;margin-bottom:16px}
+  .meter{height:16px;border-radius:99px;background:#e6edd9;overflow:hidden;margin:10px 0}.meter i{display:block;height:100%;background:linear-gradient(90deg,#3c7a2e,#9ccc4a,#D4A017);transition:width .8s}
+  .big{font-size:2rem;font-weight:800;line-height:1}.stats{display:flex;gap:22px;flex-wrap:wrap;margin-top:8px}.stats span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7a63}
+  .amts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.amts button{border:1.5px solid #3c7a2e;background:#fff;color:#1f3d1a;border-radius:99px;padding:9px 16px;font:700 .95rem system-ui;cursor:pointer}.amts button.on{background:#3c7a2e;color:#fff}
+  #kr-fund-app input,#kr-fund-app select,#kr-fund-app textarea{width:100%;padding:11px 12px;border:1.5px solid #dfe6d3;border-radius:10px;font:inherit;background:#fff}#kr-fund-app label.l{display:block;font-size:.78rem;font-weight:700;color:#5d6b57;margin:10px 0 4px}
+  .wall .w{padding:8px 0;border-bottom:1px solid #eef1e6}.wall .w small{color:#6b7a63}
+  .mgr{border:2px dashed #D4A017;background:#fffdf3}.mgr .row{background:#fff;border:1px solid #dfe6d3;border-radius:10px;padding:10px;margin:8px 0}.mgr button.sm{border:0;border-radius:99px;padding:7px 13px;font:700 .8rem system-ui;cursor:pointer;margin:4px 6px 0 0;background:#eef6d9;color:#1f3d1a}.mgr .go{background:#3c7a2e!important;color:#fff!important}.mgr .no{background:#fdecea!important;color:#b23b2e!important}
+  .pg{display:none}.pg.on{display:block}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="wrap">
+    <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="KenRho Park Tennis Club crest" /><span>KenRho Park</span></a>
+    <div class="nav-links" id="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#membership">Membership</a>
+      <a href="coach.html">Coaching</a>
+      <a href="fundraiser.html">Fundraiser</a>
+      <a href="shop.html">Shop</a>
+      <a href="index.html#news">News</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="auth.html" class="btn btn-primary btn-sm">Member login</a>
+    </div>
+    <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+  </div>
+</nav>
+
+<header class="hero" style="padding-bottom:30px">
+  <div class="wrap">
+    <div>
+      <div class="hero-eyebrow">Support the club</div>
+      <h1 id="fund-title" data-no-cms>KenRho Park Fundraiser</h1>
+      <p class="lede" id="fund-summary" data-no-cms>Support the club. Every contribution helps keep our courts and programmes going.</p>
+      <div class="hero-cta"><a href="#give" class="btn btn-primary">Give now</a><button class="btn btn-outline-light" id="share-btn" type="button">Share this fundraiser</button></div>
+    </div>
+    <div class="hero-art"><img id="fund-img" data-no-cms src="assets/logo.png" alt="Fundraiser" /></div>
+  </div>
+</header>
+<div class="seam"></div>
+
+<section>
+  <div class="wrap" id="kr-fund-app" style="max-width:860px">
+    <div class="box" id="progress"><div class="muted">Loading…</div></div>
+    <div class="box" id="story" style="display:none"></div>
+
+    <div class="box" id="give">
+      <div class="pg on" id="pg-form">
+        <h2 style="margin:0 0 4px">Give to the fundraiser</h2>
+        <p class="muted" style="margin:0 0 6px">Choose an amount, tell us who you are, and pay by EFT or at the clubhouse. We confirm every gift by hand.</p>
+        <div class="amts" id="amts"></div>
+        <label class="l">Amount (R)</label><input id="f-amt" type="number" min="1" step="1" placeholder="Other amount">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="l">Your name</label><input id="f-name" autocomplete="name"></div><div><label class="l">Phone (optional)</label><input id="f-phone" type="tel" autocomplete="tel"></div></div>
+        <label class="l">Email (for a thank-you)</label><input id="f-email" type="email" autocomplete="email">
+        <label class="l">A message for the club (optional)</label><textarea id="f-msg" rows="2" maxlength="400"></textarea>
+        <label style="display:flex;gap:8px;align-items:center;margin:10px 0"><input type="checkbox" id="f-anon" style="width:auto"> Keep my name off the supporters wall</label>
+        <label class="l">How will you pay?</label><select id="f-method"><option value="eft">EFT (bank transfer)</option><option value="cash">Cash at the clubhouse</option></select>
+        <div id="eft-box" style="background:#eef6d9;border-radius:12px;padding:12px;margin-top:10px;white-space:pre-line;font-family:ui-monospace,Menlo,monospace;font-size:.85rem"></div>
+        <div id="proof-wrap"><label class="l">Proof of payment (optional — speeds up confirmation)</label><input id="f-proof" type="file" accept="image/*,.pdf"></div>
+        <button class="btn btn-primary" id="f-go" style="width:100%;margin-top:14px">Submit my gift</button>
+      </div>
+      <div class="pg" id="pg-thanks" style="text-align:center"><div style="font-size:3rem">💚</div><h2>Thank you!</h2><p id="thanks-msg"></p><button class="btn btn-primary" id="thanks-share" type="button">Share with friends</button> <button class="btn btn-outline" id="again" type="button">Give again</button></div>
+    </div>
+
+    <div class="box wall" id="wall-box" style="display:none"><h2 style="margin:0 0 6px">Our supporters</h2><div id="wall"></div></div>
+    <div id="manager"></div>
+  </div>
+</section>
+
+<section class="section-alt">
+  <div class="wrap">
+    <div class="section-head"><h2>How you can help</h2></div>
+    <div class="grid grid-3">
+      <div class="card"><h3>Give once</h3><p class="muted">Make a one-off gift by EFT or in cash at the clubhouse, using the form above.</p></div>
+      <div class="card"><h3>Give regularly</h3><p class="muted">Ask the treasurer about a monthly stop order to support the club all year round.</p></div>
+      <div class="card"><h3>Spread the word</h3><p class="muted">Share this page with friends, family and your workplace. Every share helps.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><div class="nav-brand" style="margin-bottom:10px;"><img src="assets/logo-mark.png" alt="" style="height:34px;width:34px;" /><span style="font-family:var(--font-display);font-size:1.2rem;">KenRho Park</span></div></div>
+    <div><p><a href="index.html">Home</a></p><p><a href="coach.html">Coaching</a></p><p><a href="shop.html">Club shop</a></p></div>
+  </div>
+  <div class="wrap foot-small">&copy; <span id="year"></span> KenRho Park Tennis Club. All rights reserved.</div>
+</footer>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/site.js"></script>
+<script src="js/fundraiser.js"></script>
+<script src="js/kr-boost.js" defer></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>

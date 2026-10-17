@@ -65,7 +65,7 @@ function updateHint() {
 
 // ------------------------------------------------------------------ member picking
 function applyMember(r) {
-  S.standing_id = r.id; S.name = r.full_name; S.member_no = r.member_no || "";
+  S.standing_id = r.id; S.name = r.full_name; S.member_no = r.member_no || ""; S.email = r.email || "";
   S.category = catFromCode(r.membership_type_code) || S.category; tickCategory(); S.override = ""; S.paid = "";
   syncInputs(); dirty = true;
 }
@@ -225,6 +225,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("btn-save").addEventListener("click", save);
   $("btn-save-pdf").addEventListener("click", async () => { if (await save()) D.pdf(S); });
   $("btn-print").addEventListener("click", () => window.print());
+  $("btn-share").addEventListener("click", async () => {
+    if (!(await save())) return;
+    const out = await D.pdf(S, { blob: true }), c = D.calc(S), inv = S.type === "invoice", amt = D.fmtR(inv ? c.due : c.paid);
+    const to = S.email || ((ST.find((r) => r.id === S.standing_id) || {}).email) || "";
+    window.KR_MAIL.dialog({ title: inv ? "Share invoice" : "Share receipt", blob: out.blob, filename: out.name, to, memberName: S.name,
+      subject: `KenRho Park — ${inv ? "Invoice" : "Receipt"} ${S.number}`,
+      intro: inv ? `Please find invoice ${S.number} for ${amt} attached. Payment details are on the invoice.` : `Thank you for your payment. Please find receipt ${S.number} for ${amt} attached.`,
+      summaryHtml: `<div style="background:#eef6d9;border-radius:10px;padding:10px 12px;margin-bottom:10px">${inv ? "Invoice" : "Receipt"} <b>${S.number}</b> · <b>${amt}</b></div>` });
+  });
   $("btn-new").addEventListener("click", () => { if (!dirty || confirm("Discard what you have typed and start a blank one?")) newDoc(S.type); });
   $("btn-reset").addEventListener("click", () => {
     if (!confirm("Put the fees, payment details and notes back to the club template? Name and amounts stay.")) return;

@@ -57,6 +57,7 @@
     "#kr-help-sheet h2{margin:0;font-size:1.25rem}#kr-help-sheet .rl{display:inline-block;background:#e8f1d6;color:#2f5a22;border-radius:99px;padding:2px 10px;font-size:.74rem;font-weight:700;margin-left:6px}" +
     "#kr-help-sheet input[type=search],#kr-help-sheet input[type=text],#kr-help-sheet input[type=email],#kr-help-sheet textarea{width:100%;padding:10px 12px;border:1.5px solid #dfe6d3;border-radius:10px;font:inherit;background:#fff;color:#1b2a17;margin:6px 0}" +
     "#kr-help-sheet details{background:#fff;border:1px solid #dfe6d3;border-radius:12px;padding:10px 12px;margin:7px 0}#kr-help-sheet summary{font-weight:700;cursor:pointer}#kr-help-sheet ol{margin:8px 0 6px;padding-left:20px}#kr-help-sheet li{margin:4px 0}" +
+    "#kr-help-sheet .rb{position:sticky;top:-16px;z-index:3;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #cfe3b4;border-radius:12px;padding:6px 8px;margin:8px 0;font-size:.8rem}#kr-help-sheet .rb .sp button{border:0;border-radius:99px;padding:4px 8px;font:700 .7rem system-ui;cursor:pointer;background:#eef6d9;color:#1f3d1a}#kr-help-sheet .rb .sp button.on{background:#3c7a2e;color:#fff}#kr-help-sheet li.hl{background:#eef6d9;border-radius:6px}#kr-help-sheet .chips button{border:1px solid #dfe6d3;background:#fff;border-radius:99px;padding:3px 10px;margin:2px;font:600 .72rem system-ui;cursor:pointer;color:#5d6b57;text-transform:uppercase;letter-spacing:.04em}#kr-help-sheet .spk{border:0;background:#eef6d9;border-radius:50%;width:28px;height:28px;cursor:pointer;margin-left:8px}" +
     "#kr-help-sheet h3{margin:16px 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#5d6b57}#kr-help-sheet .hb{border:0;border-radius:99px;padding:10px 16px;font:700 .86rem system-ui;cursor:pointer;background:#3c7a2e;color:#fff}#kr-help-sheet .hb.o{background:#fff;color:#1b2a17;border:1px solid #dfe6d3}";
   document.head.appendChild(css);
   root.innerHTML = '<button id="kr-help-btn" aria-haspopup="dialog">❓ Help me</button><div id="kr-help-ov" role="dialog" aria-label="Help me"><div id="kr-help-sheet"></div></div>';
@@ -66,7 +67,7 @@
   function guideHtml(k, idx) {
     var g = G[k]; if (!g) return "";
     var id = "kr-help-g-" + idx + "-" + k;
-    return '<details data-k="' + k + '"><summary>' + esc(g[0]) + '</summary><div id="' + id + '"><ol>' + g[1].map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + '</ol></div><button type="button" class="hb o" data-read-aloud="' + id + '" data-label="Listen" style="margin-top:4px;padding:6px 12px;font-size:.78rem">🔊 Listen</button></details>';
+    return '<details data-k="' + k + '"><summary>' + esc(g[0]) + '</summary><div id="' + id + '"><ol>' + g[1].map(function (s, n) { return '<li data-line="' + n + '">' + esc(s) + "</li>"; }).join("") + '</ol></div><button type="button" class="hb o" data-speak="' + k + '" style="margin-top:4px;padding:6px 12px;font-size:.78rem">🔊 Read this aloud</button></details>';
   }
   function build(q) {
     q = (q || "").toLowerCase();
@@ -83,19 +84,17 @@
     return out;
   }
   function render() {
-    var vs = window.KR_VOICE ? window.KR_VOICE.status() : null;
-    sheet.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><h2>Help me <span class="rl">' + esc(LABEL[ROLE.key]) + '</span></h2><button class="hb o" data-close>Close</button></div>' +
-      '<input type="search" id="kr-help-q" placeholder="What do you need help with?"><div id="kr-help-list">' + build("") + "</div>" +
-      (vs ? '<h3>Voice</h3><label style="display:flex;gap:8px;align-items:center;font-size:.9rem"><input type="checkbox" id="kr-help-auto" ' + (vs.auto ? "checked" : "") + ' style="width:auto"> Download the natural voice automatically' + (vs.lowEnd ? " (not available on this device or connection)" : "") + "</label>" : "") +
+        sheet.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center"><h2>Help me <span class="rl">' + esc(LABEL[ROLE.key]) + '</span></h2><button class="hb o" data-close>Close</button></div>' +
+      '<input type="search" id="kr-help-q" placeholder="What do you need help with?"><div class="chips" id="kr-help-chips"></div>' +
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><button type="button" class="hb o" id="kr-help-all" style="padding:6px 12px;font-size:.8rem">🔊 Read all guides aloud</button></div><div id="kr-help-bar"></div><div id="kr-help-list">' + build("") + "</div>" +
       '<h3>Still stuck? Message the club</h3><form id="kr-help-form"><input type="text" id="kr-help-name" placeholder="Your name" required><input type="email" id="kr-help-email" placeholder="Your email (so we can reply)"><textarea id="kr-help-msg" rows="3" placeholder="Tell us what went wrong" required></textarea>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="hb" type="submit">Send</button><a class="hb o" style="text-decoration:none" href="https://wa.me/27725196875?text=' + encodeURIComponent("Hi, I need help with the KenRho website (" + page + ")") + '" target="_blank" rel="noopener">WhatsApp the club</a></div><div id="kr-help-ok" style="margin-top:8px;font-weight:600"></div></form>';
-    var p = ROLE.profile; if (p) { sheet.querySelector("#kr-help-name").value = p.full_name || ""; sheet.querySelector("#kr-help-email").value = p.email || ""; }
+    chips(); var p = ROLE.profile; if (p) { sheet.querySelector("#kr-help-name").value = p.full_name || ""; sheet.querySelector("#kr-help-email").value = p.email || ""; }
   }
   function open() { render(); ov.classList.add("on"); }
   root.querySelector("#kr-help-btn").addEventListener("click", open);
   ov.addEventListener("click", function (e) { if (e.target === ov || e.target.hasAttribute("data-close")) ov.classList.remove("on"); });
   sheet.addEventListener("input", function (e) { if (e.target.id === "kr-help-q") { sheet.querySelector("#kr-help-list").innerHTML = build(e.target.value); if (e.target.value && sheet.querySelector("details")) sheet.querySelector("details").open = true; if (window.KR_READ) sheet.querySelectorAll("[data-read-aloud]").forEach(function (b) { window.KR_READ.init(b); }); } });
-  sheet.addEventListener("change", function (e) { if (e.target.id === "kr-help-auto" && window.KR_VOICE) window.KR_VOICE.setAuto(e.target.checked); });
   sheet.addEventListener("toggle", function () { if (window.KR_READ) sheet.querySelectorAll("[data-read-aloud]").forEach(function (b) { if (!b.dataset.state) window.KR_READ.init(b); }); }, true);
   sheet.addEventListener("submit", function (e) {
     e.preventDefault(); if (!sb) return;
@@ -103,6 +102,66 @@
     if (ROLE.profile) row.member_id = ROLE.profile.id;
     sb.from("support_messages").insert(row).then(function (r) { ok.textContent = r.error ? "Could not send. Please use WhatsApp instead." : "Sent ✓ — the club will get back to you."; if (!r.error) sheet.querySelector("#kr-help-msg").value = ""; });
   });
+  // ---------------------------------------------------------------- recent searches (from the weafrica Rules reader)
+  var RK = "kr-help-recent-v1", SK = "kr-help-speed-v1", DEFAULT_CHIPS = ["pay", "receipt", "install", "listen"];
+  function recent() { try { return JSON.parse(localStorage.getItem(RK)) || []; } catch (e) { return []; } }
+  function addRecent(t) { t = (t || "").trim().toLowerCase(); if (t.length < 2) return; var r = [t].concat(recent().filter(function (x) { return x !== t; })).slice(0, 6); try { localStorage.setItem(RK, JSON.stringify(r)); } catch (e) {} }
+  function chips() { var c = sheet.querySelector("#kr-help-chips"); if (!c) return; var r = recent(); c.innerHTML = (r.length ? r : DEFAULT_CHIPS).map(function (t) { return '<button type="button" data-chip="' + esc(t) + '">' + esc(t) + "</button>"; }).join(""); }
+  var qTimer = null;
+  sheet.addEventListener("input", function (e) { if (e.target.id === "kr-help-q") { clearTimeout(qTimer); var v = e.target.value; qTimer = setTimeout(function () { addRecent(v); }, 800); } });
+  sheet.addEventListener("click", function (e) { var c = e.target.dataset && e.target.dataset.chip; if (c) { var q = sheet.querySelector("#kr-help-q"); q.value = c; q.dispatchEvent(new Event("input", { bubbles: true })); } });
+
+  // ---------------------------------------------------------------- read aloud with the phone's own voice
+  // Ported from the Rules reader in weafrica/efootball-leagues: each guide is read as ONE passage (no stop at every full stop),
+  // the current line is highlighted, speed is Slow/Normal/Fast and remembered, pause/resume on desktop only (it breaks phones),
+  // and a keep-alive nudge on desktop stops the browser going silent after ~15 seconds.
+  var speech = window.speechSynthesis || null, RATES = { slow: 0.75, normal: 1, fast: 1.35 };
+  var rd = { token: 0, key: null, queue: [], qi: 0, all: false, paused: false, utter: null, watchdog: null, voices: [] };
+  var mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+  var speed = (function () { try { var v = localStorage.getItem(SK); return RATES[v] ? v : "normal"; } catch (e) { return "normal"; } })();
+  function loadVoices() { rd.voices = speech ? speech.getVoices() : []; }
+  if (speech) { loadVoices(); speech.onvoiceschanged = loadVoices; try { speech.cancel(); } catch (e) {} var polls = 0, pv = setInterval(function () { loadVoices(); if (rd.voices.length || ++polls > 10) clearInterval(pv); }, 300); }
+  function pickVoice() {
+    var best = null, bs = -1e9; rd.voices.forEach(function (v) {
+      var n = (v.name || "").toLowerCase(), l = (v.lang || "").toLowerCase().replace("_", "-"), sc = 0; if (l.indexOf("en") !== 0) return;
+      if (/online \(natural\)|neural|natural/.test(n)) sc += 100; if (/premium|enhanced/.test(n)) sc += 85; if (/siri/.test(n)) sc += 70; if (/google/.test(n)) sc += 60; if (/espeak|compact|novelty|zarvox/.test(n)) sc -= 80;
+      if (l === "en-za") sc += 30; else if (l === "en-gb") sc += 20; else if (l === "en-us") sc += 15; if (v.localService) sc += 4; if (sc > bs) { bs = sc; best = v; }
+    }); return best;
+  }
+  function stopWatch() { if (rd.watchdog) { clearInterval(rd.watchdog); rd.watchdog = null; } }
+  function paintBar() {
+    var bar = sheet.querySelector("#kr-help-bar"); if (!bar) return;
+    if (!rd.key) { bar.innerHTML = ""; return; }
+    var cur = rd.queue[rd.qi] || {}, label = rd.all ? "Reading " + (rd.qi + 1) + " of " + rd.queue.length + " — " + cur.title : "Reading — " + cur.title;
+    bar.innerHTML = '<div class="rb"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🔊 ' + esc(label) + '</span><span class="sp">' + ["slow", "normal", "fast"].map(function (k) { return '<button data-speed="' + k + '" class="' + (speed === k ? "on" : "") + '">' + k.charAt(0).toUpperCase() + k.slice(1) + "</button>"; }).join("") + "</span>" +
+      (mobile ? "" : '<button class="hb o" data-pause style="padding:4px 9px">' + (rd.paused ? "▶" : "⏸") + "</button>") + '<button class="hb o" data-stop style="padding:4px 9px">⏹</button></div>';
+  }
+  function highlight(idx) { sheet.querySelectorAll("li.hl").forEach(function (l) { l.classList.remove("hl"); }); var d = sheet.querySelector('details[data-k="' + rd.key + '"]'); if (d && idx >= 0) { var li = d.querySelector('li[data-line="' + idx + '"]'); if (li) li.classList.add("hl"); } }
+  function runOne(item, rate) {
+    if (!speech) return; speech.cancel(); stopWatch(); var tok = ++rd.token;
+    var segs = [], text = ""; segs.push({ s: 0, e: item.title.length + 2, i: -1 }); text += item.title + ". ";
+    item.lines.forEach(function (l, i) { var c = l + ". "; segs.push({ s: text.length, e: text.length + c.length, i: i }); text += c; });
+    var u = new SpeechSynthesisUtterance(text), v = pickVoice(); if (v) u.voice = v; u.lang = (v && v.lang) || "en-ZA"; u.rate = rate || RATES[speed];
+    u.onboundary = function (ev) { if (rd.token !== tok) return; for (var k = 0; k < segs.length; k++) if (ev.charIndex >= segs[k].s && ev.charIndex < segs[k].e) { highlight(segs[k].i); break; } };
+    var end = function () { if (rd.token !== tok) return; stopWatch(); rd.utter = null; if (rd.all && rd.qi + 1 < rd.queue.length) { rd.qi++; rd.key = rd.queue[rd.qi].key; paintBar(); openGuide(rd.key); runOne(rd.queue[rd.qi]); } else stopReading(); };
+    u.onend = end; u.onerror = end; rd.utter = u; rd.key = item.key; rd.paused = false; paintBar(); highlight(-1); speech.speak(u);
+    if (!mobile) rd.watchdog = setInterval(function () { if (rd.token !== tok) return stopWatch(); if (rd.paused) return; if (!speech.speaking) return stopWatch(); speech.pause(); speech.resume(); }, 5000);
+  }
+  function stopReading() { rd.token++; stopWatch(); if (speech) speech.cancel(); rd.key = null; rd.queue = []; rd.qi = 0; rd.all = false; rd.paused = false; paintBar(); highlight(-1); }
+  function openGuide(k) { var d = sheet.querySelector('details[data-k="' + k + '"]'); if (d) d.open = true; }
+  function itemFor(k) { return { key: k, title: G[k][0], lines: G[k][1] }; }
+  sheet.addEventListener("click", function (e) {
+    var t = e.target; if (!speech) return;
+    if (t.dataset.speak) { var k = t.dataset.speak; if (rd.key === k && !rd.all) return stopReading(); rd.all = false; rd.queue = [itemFor(k)]; rd.qi = 0; runOne(rd.queue[0]); }
+    else if (t.id === "kr-help-all") { if (rd.all) return stopReading(); var keys = []; sheet.querySelectorAll("details[data-k]").forEach(function (d) { keys.push(d.dataset.k); }); if (!keys.length) return; rd.queue = keys.map(itemFor); rd.qi = 0; rd.all = true; openGuide(keys[0]); runOne(rd.queue[0]); }
+    else if (t.dataset.speed) { speed = t.dataset.speed; try { localStorage.setItem(SK, speed); } catch (er) {} if (rd.key) { var it = rd.queue[rd.qi]; runOne(it, RATES[speed]); } else paintBar(); }
+    else if (t.hasAttribute("data-pause") && !mobile) { if (rd.paused) { speech.resume(); rd.paused = false; } else { speech.pause(); rd.paused = true; } paintBar(); }
+    else if (t.hasAttribute("data-stop")) stopReading();
+  });
+  ov.addEventListener("click", function (e) { if (e.target === ov || e.target.hasAttribute("data-close")) stopReading(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && ov.classList.contains("on")) { ov.classList.remove("on"); stopReading(); } });
+  window.addEventListener("pagehide", stopReading);
+
   // remove the old floating support bubble so there is only one help button
   function dropOld() { var o = document.getElementById("help-widget-btn"); if (o) o.remove(); var p = document.getElementById("help-widget-panel"); if (p) p.remove(); }
   setTimeout(dropOld, 0); setTimeout(dropOld, 1200);
