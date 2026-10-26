@@ -639,12 +639,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("tab-sheet-link").classList.remove("hidden");
     document.getElementById("tab-docs-link").classList.remove("hidden");
   }
-  if (CTX.profile.role === "admin" && ["kenrhoparktennisclub@gmail.com", "saulestoo@gmail.com"].includes((CTX.profile.email || "").toLowerCase())) {
+  if ((CTX.profile.email || "").toLowerCase() === "kenrhoparktennisclub@gmail.com" || ["chairman", "secretary", "treasurer"].includes(CTX.profile.role)) {
     document.getElementById("tab-officers-link").classList.remove("hidden");
   }
   { const em = (CTX.profile.email || "").toLowerCase(), saul = em === "saulestoo@gmail.com", r = CTX.profile.role, show = (id) => { const n = document.getElementById(id); if (n) n.classList.remove("hidden"); };
     if (saul || ["treasurer", "chairman", "admin"].includes(r)) { show("tab-list-link"); show("tab-shoprec-link"); }
     if (saul || r === "treasurer") show("tab-accounts-link"); }
+  if (["admin", "chairman", "secretary", "treasurer"].includes(CTX.profile.role) && document.getElementById("tab-activity-link")) document.getElementById("tab-activity-link").classList.remove("hidden");
   document.getElementById("manual-add-line").addEventListener("click", addManualLine);
   document.getElementById("btn-post-manual").addEventListener("click", postManualEntry);
   document.querySelector("#manual-lines-table").addEventListener("click", (e) => {

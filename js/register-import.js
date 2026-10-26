@@ -141,6 +141,7 @@
       var a = await window.sb.from("treasurer_standing").insert(row).select().single(); if (a.error) errors.push(s.full_name + ": " + a.error.message); else { n.add++; app.push(a.data); }
     }
     for (var k = 0; k < rms.length; k++) { var dl = await window.sb.from("treasurer_standing").delete().eq("id", rms[k].id); if (dl.error) errors.push(rms[k].full_name + ": " + (/foreign key|violates/i.test(dl.error.message) ? "linked to a family account" : dl.error.message)); else n.rm++; }
+    if (window.KR_ACT) window.KR_ACT.log("register import applied", n.upd + " updated, " + n.add + " added, " + n.rm + " removed", { errors: errors.length });
     toast("Done: " + n.upd + " updated, " + n.add + " added, " + n.rm + " removed." + (errors.length ? " " + errors.length + " could not be applied." : ""), errors.length ? "warn" : "info");
     if (window.SEASON === state.sid && typeof window.load === "function") await window.load();
     await run(); if (errors.length) { var box = document.createElement("div"); box.className = "flag"; box.innerHTML = "<b>Could not apply:</b><br>" + errors.map(h).join("<br>"); el("imp-out").prepend(box); }

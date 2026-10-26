@@ -60,6 +60,7 @@ function openDrawer(id) {
   <div class="sec"><h4>Form &amp; proof</h4><label class="tog"><input type="checkbox" data-f="form_submitted" ${r.form_submitted ? "checked" : ""}> 2026 form received</label><label>Date form received</label>${f("date_form_received", r.date_form_received || "", "date")}<label class="tog"><input type="checkbox" data-f="proof_received" ${r.proof_received ? "checked" : ""}> Proof of payment received</label></div>
   <div class="sec"><h4>Notes &amp; follow-ups</h4><textarea data-f="treasurer_note" rows="3">${esc(r.treasurer_note || "")}</textarea></div>
   <div class="acts" style="justify-content:space-between"><button class="btn btn-sm" style="background:#fdecea;color:#b23b2e" data-remove>Remove this member</button><button class="btn btn-primary btn-sm" data-close>Done</button></div></div></div>`;
+  if (window.krPaymentsSection) window.krPaymentsSection(r, readOnly());
   if (readOnly()) { $("drawer").querySelectorAll(".dr input,.dr select,.dr textarea,.dr [data-pay],.dr [data-remove]").forEach((e) => (e.disabled = true)); const h = $("drawer").querySelector(".dr h2"); if (h) h.insertAdjacentHTML("afterend", `<div class="flag">🔒 ${esc(curSeason().label)} is closed — view only.</div>`); }
 }
 const timers = {};
@@ -74,12 +75,13 @@ async function saveField(input) {
   r[f] = v; if ($("saved")) $("saved").textContent = "Saved ✓"; const bar = $("dbar"); if (bar) bar.style.width = pct(r) + "%"; render();
 }
 async function addPayment(makeReceipt) {
-  const r = ROWS.find((x) => x.id === OPEN), amt = Number($("pay-amt").value), date = $("pay-date").value;
+  const r = ROWS.find((x) => x.id === OPEN), amt = Number($("pay-amt").value), date = $("pay-date").value || new Date().toISOString().slice(0, 10);
   if (!(amt > 0)) return window.KR.toast("Enter the amount received.", "warn");
-  const paid = Number(r.paid_amount || 0) + amt;
-  const { error } = await window.sb.from("treasurer_standing").update({ paid_amount: paid, last_payment_date: date || r.last_payment_date, updated_at: new Date().toISOString() }).eq("id", r.id);
+  // every payment is its own line, so the statement of account can list it and the total always adds up
+  const { error } = await window.sb.from("member_payments").insert({ season_id: r.season_id, standing_id: r.id, pay_date: date, amount: amt, description: "Payment recorded by the treasurer", source: "manual", counts: true, created_by: ME.id });
   if (error) return window.KR.toast(error.message, "error");
-  r.paid_amount = paid; r.last_payment_date = date || r.last_payment_date; window.KR.toast(`${R(amt)} recorded for ${r.full_name}.`);
+  const { data } = await window.sb.from("treasurer_standing").select("*").eq("id", r.id).single(); if (data) Object.assign(r, data);
+  window.KR.toast(`${R(amt)} recorded for ${r.full_name}.`); window.KR_ACT && window.KR_ACT.log("payment recorded", r.full_name + " " + R(amt), { date });
   if (makeReceipt) return (location.href = `admin-documents.html?standing=${r.id}&type=receipt&amount=${amt}`);
   render(); openDrawer(r.id);
 }
@@ -88,7 +90,7 @@ async function removeMember() {
   if (!confirm(`Remove ${r.full_name} (${r.member_no || "no number"}) from the register? This cannot be undone.`)) return;
   const { error } = await window.sb.from("treasurer_standing").delete().eq("id", r.id);
   if (error) return window.KR.toast(/foreign key|violates/i.test(error.message) ? "This member is linked to a family account. Unlink them under Admin → Members first." : error.message, "error");
-  ROWS = ROWS.filter((x) => x.id !== r.id); $("drawer").innerHTML = ""; OPEN = null; render(); window.KR.toast("Member removed.");
+  ROWS = ROWS.filter((x) => x.id !== r.id); $("drawer").innerHTML = ""; OPEN = null; render(); window.KR.toast("Member removed."); window.KR_ACT && window.KR_ACT.log("member removed from register", r.full_name + " " + (r.member_no || ""), { season: curSeason().label });
 }
 
 // ───────── add a member
@@ -105,7 +107,7 @@ function openAdd() {
       email: $("a-email").value.trim() || null, phone: $("a-phone").value.trim() || null, expected_amount: Number($("a-exp").value) || 0, paid_amount: Number($("a-paid").value) || 0, last_payment_date: $("a-date").value || null, season_id: SEASON };
     $("a-save").disabled = true; const { data, error } = await window.sb.from("treasurer_standing").insert(row).select().single();
     if (error) { $("a-save").disabled = false; return window.KR.toast(error.message, "error"); }
-    ROWS.push(data); render(); window.KR.toast(`Added ${data.full_name} (${data.member_no}).`); openDrawer(data.id);
+    ROWS.push(data); render(); window.KR.toast(`Added ${data.full_name} (${data.member_no}).`); window.KR_ACT && window.KR_ACT.log("member added to register", data.full_name + " " + data.member_no, { season: curSeason().label }); openDrawer(data.id);
   };
 }
 function exportCsv() {

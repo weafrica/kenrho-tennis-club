@@ -19,6 +19,7 @@
   .wall .w{padding:8px 0;border-bottom:1px solid #eef1e6}.wall .w small{color:#6b7a63}
   .mgr{border:2px dashed #D4A017;background:#fffdf3}.mgr .row{background:#fff;border:1px solid #dfe6d3;border-radius:10px;padding:10px;margin:8px 0}.mgr button.sm{border:0;border-radius:99px;padding:7px 13px;font:700 .8rem system-ui;cursor:pointer;margin:4px 6px 0 0;background:#eef6d9;color:#1f3d1a}.mgr .go{background:#3c7a2e!important;color:#fff!important}.mgr .no{background:#fdecea!important;color:#b23b2e!important}
   .pg{display:none}.pg.on{display:block}
+  .ev{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}.ev .dt{background:#1f3d1a;color:#fff;border-radius:14px;padding:12px 18px;text-align:center;min-width:100px}.ev .dt b{display:block;font-size:2.4rem;line-height:1}.ev .dt span{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#b9e36b}.ev h2{margin:0}.ev .pr{font-size:1.5rem;font-weight:800;color:#3c7a2e}.ev img{grid-column:1/-1;width:100%;border-radius:14px;max-height:520px;object-fit:contain;background:#faf8ee}@media(max-width:560px){.ev{grid-template-columns:1fr}}.oth{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #eef1e6}.oth a{font-weight:700}
 </style>
 </head>
 <body>
@@ -29,6 +30,7 @@
       <a href="index.html#about">About</a>
       <a href="index.html#membership">Membership</a>
       <a href="coach.html">Coaching</a>
+      <a href="leagues.html">Leagues</a>
       <a href="fundraiser.html">Fundraiser</a>
       <a href="shop.html">Shop</a>
       <a href="index.html#news">News</a>
@@ -54,15 +56,18 @@
 
 <section>
   <div class="wrap" id="kr-fund-app" style="max-width:860px">
+    <div class="box" id="event" style="display:none"></div>
     <div class="box" id="progress"><div class="muted">Loading…</div></div>
     <div class="box" id="story" style="display:none"></div>
+    <div class="box" id="others" style="display:none"></div>
 
     <div class="box" id="give">
       <div class="pg on" id="pg-form">
-        <h2 style="margin:0 0 4px">Give to the fundraiser</h2>
+        <h2 style="margin:0 0 4px" id="give-title">Give to the fundraiser</h2>
         <p class="muted" style="margin:0 0 6px">Choose an amount, tell us who you are, and pay by EFT or at the clubhouse. We confirm every gift by hand.</p>
+        <div id="plates-wrap" style="display:none"><label class="l" id="plates-lbl">How many plates?</label><div class="amts" id="plate-btns"></div></div>
         <div class="amts" id="amts"></div>
-        <label class="l">Amount (R)</label><input id="f-amt" type="number" min="1" step="1" placeholder="Other amount">
+        <label class="l" id="amt-lbl">Amount (R)</label><input id="f-amt" type="number" min="1" step="1" placeholder="Other amount">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label class="l">Your name</label><input id="f-name" autocomplete="name"></div><div><label class="l">Phone (optional)</label><input id="f-phone" type="tel" autocomplete="tel"></div></div>
         <label class="l">Email (for a thank-you)</label><input id="f-email" type="email" autocomplete="email">
         <label class="l">A message for the club (optional)</label><textarea id="f-msg" rows="2" maxlength="400"></textarea>

@@ -23,6 +23,7 @@
     var type = (await db.from("membership_types").select("name").eq("code", s.membership_type_code).maybeSingle()).data;
     var docs = (await db.from("documents").select("doc_type,doc_number,doc_date,amount").eq("standing_id", s.id).order("doc_date")).data || [];
     var all = (await db.from("treasurer_standing").select("expected_amount,paid_amount,seasons(label,starts_on)").or("member_no.eq." + (s.member_no || "none") + (s.email ? ",email.ilike." + s.email : "")).neq("id", s.id)).data || [];
+    var pays = (await db.from("member_payments").select("pay_date,amount,description,source,counts").eq("standing_id", s.id).eq("counts", true).order("pay_date")).data || [];
     var prof = s.email ? (await db.from("profiles").select("id").ilike("email", s.email).maybeSingle()).data : null;
     var ledgerRec = [], ledgerInv = [], orders = [];
     if (prof) {
@@ -33,18 +34,25 @@
     var inSeason = function (d) { if (!d || !season.starts_on) return true; var x = String(d).slice(0, 10); return x >= season.starts_on && x <= season.ends_on; };
     var lines = [], bal = 0, expected = n(s.expected_amount), paid = n(s.paid_amount);
     var dateFee = season.starts_on || null;
-    bal += expected; lines.push({ date: dateFee, desc: "Membership fee " + season.label + (type ? " (" + type.name + ")" : ""), ref: s.member_no || "", debit: expected, credit: 0, bal: bal });
-    if (s.treasurer_note && /brought forward/i.test(s.treasurer_note)) lines[0].desc += " — " + s.treasurer_note;
-    var credits = [];
-    docs.filter(function (d) { return d.doc_type === "receipt"; }).forEach(function (d) { credits.push({ date: d.doc_date, desc: "Receipt", ref: d.doc_number, amt: n(d.amount) }); });
-    ledgerRec.filter(function (r) { return !/^Treasurer (sheet|register)/i.test(r.bank_reference || "") && inSeason(r.submitted_at); }).forEach(function (r) { credits.push({ date: String(r.submitted_at).slice(0, 10), desc: "Payment received (online proof)", ref: r.receipt_number || "", amt: n(r.amount) }); });
+    var bfm = (s.treasurer_note || "").match(/Includes R(-?[\d.]+) brought forward from ([\d-]+)/), bf = bfm ? Number(bfm[1]) : 0;
+    if (bfm && Math.abs(bf) > 0.005) {
+      bal += expected - bf; lines.push({ date: dateFee, desc: "Membership fee " + season.label + (type ? " (" + type.name + ")" : ""), ref: s.member_no || "", debit: expected - bf, credit: 0, bal: bal });
+      if (bf > 0) { bal += bf; lines.push({ date: dateFee, desc: "Balance brought forward from " + bfm[2], ref: "", debit: bf, credit: 0, bal: bal }); }
+      else { bal += bf; lines.push({ date: dateFee, desc: "Credit brought forward from " + bfm[2] + " (overpaid)", ref: "", debit: 0, credit: -bf, bal: bal }); }
+    } else { bal += expected; lines.push({ date: dateFee, desc: "Membership fee " + season.label + (type ? " (" + type.name + ")" : ""), ref: s.member_no || "", debit: expected, credit: 0, bal: bal }); }
+    var credits = [], haveBank = pays.length > 0;
+    pays.forEach(function (p) { credits.push({ date: p.pay_date, desc: (p.source === "bank" ? "Payment received (bank): " : "Payment received: ") + (p.description || "").replace(/^(Magtape Credit|Payshap Credit|FNB App Payment From|Int-Banking Pmt Frm|ADT Cash Deposit|FNB OB Pmt)\s*/i, ""), ref: "", amt: n(p.amount) }); });
+    // when payments are on file individually, receipts and online proofs are listed for reference only (they are the same money)
+    var refReceipts = [];
+    docs.filter(function (d) { return d.doc_type === "receipt"; }).forEach(function (d) { (haveBank ? refReceipts : credits).push({ date: d.doc_date, desc: haveBank ? "Receipt issued" : "Receipt", ref: d.doc_number, amt: n(d.amount) }); });
+    ledgerRec.filter(function (r) { return !/^Treasurer (sheet|register)/i.test(r.bank_reference || "") && inSeason(r.submitted_at); }).forEach(function (r) { (haveBank ? refReceipts : credits).push({ date: String(r.submitted_at).slice(0, 10), desc: "Payment received (online proof)", ref: r.receipt_number || "", amt: n(r.amount) }); });
     credits.sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); });
     var listed = 0;
     credits.forEach(function (c) { listed += c.amt; bal -= c.amt; lines.push({ date: c.date, desc: c.desc, ref: c.ref, debit: 0, credit: c.amt, bal: bal }); });
     var diff = Math.round((paid - listed) * 100) / 100, note = null;
     if (diff > 0.005) { bal -= diff; lines.push({ date: s.last_payment_date || null, desc: "Payments recorded on the membership register", ref: "", debit: 0, credit: diff, bal: bal }); }
     else if (diff < -0.005) note = "Receipts on file total R" + (-diff).toFixed(2) + " more than the payments on the register. The treasurer will confirm.";
-    var invoices = docs.filter(function (d) { return d.doc_type === "invoice"; }).map(function (d) { return { date: d.doc_date, ref: d.doc_number, amt: n(d.amount) }; })
+    var invoices = refReceipts.map(function (r) { return { date: r.date, ref: r.ref, amt: r.amt, desc: r.desc }; }).concat(docs.filter(function (d) { return d.doc_type === "invoice"; }).map(function (d) { return { date: d.doc_date, ref: d.doc_number, amt: n(d.amount) }; }))
       .concat(ledgerInv.filter(function (i) { return inSeason(i.issue_date); }).map(function (i) { return { date: i.issue_date, ref: i.invoice_number, amt: n(i.amount), desc: i.description }; }));
     var shop = orders.map(function (o) { return { date: String(o.created_at).slice(0, 10), amt: n(o.subtotal), desc: (o.shop_order_items || []).map(function (i) { return i.qty + "× " + i.product_name; }).join(", ") }; });
     var prev = all.filter(function (a) { return a.seasons && season.starts_on && a.seasons.starts_on < season.starts_on; }).map(function (a) { return { season: a.seasons.label, expected: n(a.expected_amount), paid: n(a.paid_amount) }; });
@@ -74,7 +82,7 @@
     p.text("Total charged " + R(st.totals.charged), X + 4, y + 7); p.text("Total paid " + R(st.totals.paid), X + 70, y + 7);
     p.setFontSize(13); p.text(st.totals.balance > 0.005 ? "Balance due " + R(st.totals.balance) : st.totals.balance < -0.005 ? "In credit " + R(-st.totals.balance) : "Paid up — nothing owing", X + 4, y + 15); y += 26; p.setTextColor(0);
     if (st.note) txt(st.note, { s: 9, c: [150, 90, 20] });
-    if (st.invoices.length) { txt("Invoices issued", { b: 1, gap: 3 }); st.invoices.forEach(function (i) { txt(D(i.date) + "   " + i.ref + "   " + R(i.amt) + (i.desc ? "   " + i.desc : ""), { s: 9 }); }); }
+    if (st.invoices.length) { txt("Invoices and receipts on file", { b: 1, gap: 3 }); st.invoices.forEach(function (i) { txt(D(i.date) + "   " + i.ref + "   " + R(i.amt) + (i.desc ? "   " + i.desc : ""), { s: 9 }); }); }
     if (st.previous.length) { txt("Earlier seasons", { b: 1, gap: 3 }); st.previous.forEach(function (a) { txt(a.season + ": fee " + R(a.expected) + ", paid " + R(a.paid) + ", balance " + R(a.expected - a.paid), { s: 9 }); }); }
     if (st.shop.length) { txt("Club shop purchases (not part of the membership balance)", { b: 1, gap: 3 }); st.shop.forEach(function (o) { txt(D(o.date) + "   " + R(o.amt) + "   " + o.desc, { s: 9 }); }); }
     txt("How to pay", { b: 1, gap: 4 }); BANK.forEach(function (b) { txt(b, { s: 9 }); });

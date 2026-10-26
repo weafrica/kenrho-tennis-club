@@ -23,6 +23,7 @@
   function go() {
     needClient(function () {
       load("auth-ui.js");
+      load("activity.js");
       if (document.getElementById("fees-table")) load("fees.js");
       if (!appShell) load("cms.js");
       load("help-me.js");

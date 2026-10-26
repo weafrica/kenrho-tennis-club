@@ -12,3 +12,9 @@
 --  * fundraisers / fundraiser_pledges + submit_pledge(), fundraiser_public(), confirm_pledge(), reject_pledge()
 --  * auto_season_rollover() on pg_cron "kr-season-rollover" (00:10 SAST daily; first automatic roll-over 1 July 2027, see integrations.season_auto_from)
 --  * register_source_info() / set_register_source()  (optional link to the treasurer's Google Sheet)
+-- Round 4 (migrations: member_payments_from_bank_t_accounts, governance_activity_log_teams, leagues_fundraiser_events):
+--  * member_payments: every payment is its own line (FY 2025/26 loaded from the bank T-accounts); paid_amount and next season's opening balance follow it
+--  * governance: club account only appoints the executive; the executive adds/removes admins, committee, coach, shop team, fundraising team
+--  * user_activity_log + activity_feed(); fundraising_team (Gops Modise); shop_team (Ruan Manickum)
+--  * leagues / league_participants / league_matches with explicit grants (needed for new tables from 30 October); Social Pairs Round Robin seeded
+--  * fundraisers: one-day events (Spring Smash, 31 Oct 2026), plate reservations

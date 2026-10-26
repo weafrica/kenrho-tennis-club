@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>User activity — KenRho Park Tennis Club</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .au{max-width:960px;margin:0 auto;padding:0 16px 50px}.au h1{margin:6px 0 2px}.au .sub{color:#5d6b57;margin:0 0 12px}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.bar input,.bar select{padding:10px 14px;border:1.5px solid #dfe6d3;border-radius:99px;font:inherit;background:#fff}.bar input{flex:1;min-width:200px}
+  .ev{display:flex;gap:12px;background:#fff;border:1px solid #dfe6d3;border-radius:12px;padding:10px 12px;margin:7px 0}.ev .ic{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex:none;background:#eef6d9}.ev .tx{flex:1;min-width:0}.ev .tx b{font-weight:700}.ev small{color:#6b7a63}.ev .dt{font-size:.78rem;color:#6b7a63;white-space:nowrap}.ev pre{white-space:pre-wrap;font-size:.74rem;background:#f6f9ee;border-radius:8px;padding:6px 8px;margin:6px 0 0}
+  .day{font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:#5d6b57;margin:16px 0 4px}
+</style>
+</head>
+<body class="app-shell">
+<div class="app-nav"><div class="wrap">
+  <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="" /><span>KenRho Park &middot; Admin</span></a>
+  <div class="flex gap-16"><span class="muted small" id="who">—</span><a href="admin.html" class="btn btn-outline-light btn-sm">&larr; Back to admin</a><button id="btn-sign-out" class="btn btn-outline-light btn-sm">Sign out</button></div>
+</div><div class="wrap tabs mt-16"><a href="admin.html">Members</a><a href="admin-officers.html" id="t-off" class="hidden">Officers</a><a class="active">User activity</a></div></div>
+<main class="app-main"><div class="au">
+  <h1>User activity</h1><p class="sub">What administrators and the executive have done on the website, newest first. Visible to administrators and the executive. Names come from each person's own sign-in.</p>
+  <div class="bar"><input type="search" id="q" placeholder="Search a name or what they did…"><select id="k"><option value="">Everything</option><option value="role">Roles &amp; teams</option><option value="website">Website edits</option><option value="activity">Other actions</option></select><select id="p"><option value="">Everyone</option></select><button class="btn btn-outline" id="csv">Export</button></div>
+  <div id="list"><p class="muted">Loading…</p></div><button class="btn btn-outline hidden" id="more" style="width:100%">Show older</button>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script><script src="js/supabaseClient.js"></script><script src="js/site.js"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id), esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const g = await window.KR_guard("staff"); if (!g) return; const me = g.profile;
+  if (!["admin", "chairman", "secretary", "treasurer"].includes(me.role)) { location.href = "admin.html"; return; }
+  if (["chairman", "secretary", "treasurer"].includes(me.role) || (me.email || "").toLowerCase() === "kenrhoparktennisclub@gmail.com") $("t-off").classList.remove("hidden");
+  $("who").textContent = me.full_name || me.email; $("btn-sign-out").onclick = window.KR_signOut;
+  let LIMIT = 200, ROWS = [];
+  const IC = { role: "🔑", website: "✏️", activity: "📋" };
+  async function load() {
+    const { data, error } = await window.sb.rpc("activity_feed", { p_limit: LIMIT }); if (error) { $("list").innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`; return; }
+    ROWS = data || []; const people = [...new Set(ROWS.map((r) => r.actor).filter(Boolean))].sort(); const cur = $("p").value;
+    $("p").innerHTML = '<option value="">Everyone</option>' + people.map((p) => `<option${p === cur ? " selected" : ""}>${esc(p)}</option>`).join(""); draw();
+  }
+  const vis = () => { const q = $("q").value.trim().toLowerCase(), k = $("k").value, p = $("p").value; return ROWS.filter((r) => (!k || r.kind === k) && (!p || r.actor === p) && (!q || (r.actor + " " + r.summary).toLowerCase().includes(q))); };
+  function draw() {
+    const rows = vis(); let day = "";
+    $("list").innerHTML = rows.map((r) => { const d = new Date(r.at), ds = d.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); const head = ds !== day ? `<div class="day">${ds}</div>` : ""; day = ds;
+      const det = r.details && Object.keys(r.details).length ? `<pre>${esc(JSON.stringify(r.details, null, 1).replace(/[{}"]/g, "").trim())}</pre>` : "";
+      return head + `<div class="ev"><div class="ic">${IC[r.kind] || "•"}</div><div class="tx"><b>${esc(r.actor)}</b> — ${esc(r.summary)}${r.details && r.details.reason ? `<br><small>Why: ${esc(r.details.reason)}</small>` : ""}${det}</div><div class="dt">${d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}</div></div>`; }).join("") || '<p class="muted">Nothing matches.</p>';
+    $("more").classList.toggle("hidden", ROWS.length < LIMIT);
+  }
+  ["q", "k", "p"].forEach((i) => $(i).addEventListener("input", draw)); $("more").onclick = () => { LIMIT += 300; load(); };
+  $("csv").onclick = () => { const q = (v) => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`; const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([["When,Who,Type,What"].concat(vis().map((r) => [r.at, r.actor, r.kind, r.summary].map(q).join(","))).join("\n")], { type: "text/csv" })); a.download = "kenrho-user-activity.csv"; a.click(); };
+  load();
+})();
+</script>
+<script src="js/kr-boost.js" defer></script><script src="js/pwa.js"></script>
+</body>
+</html>

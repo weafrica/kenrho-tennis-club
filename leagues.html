@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Leagues &amp; tournaments — KenRho Park Tennis Club</title>
+<meta name="description" content="Fun leagues, official leagues and tournaments at KenRho Park Tennis Club. Start your own league, join one, and follow the standings." />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  #lg{max-width:980px}#lg .box{background:#fff;border:1px solid #dfe6d3;border-radius:16px;padding:16px;margin-bottom:14px}
+  .tabs3{display:flex;gap:6px;margin:0 0 14px;overflow-x:auto}.tabs3 button{border:1.5px solid #dfe6d3;background:#fff;border-radius:99px;padding:9px 16px;font:700 .88rem system-ui;cursor:pointer;color:#3a4a33;white-space:nowrap}.tabs3 button.on{background:#1f3d1a;color:#fff;border-color:#1f3d1a}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}.lc{background:#fff;border:1px solid #dfe6d3;border-radius:14px;padding:14px;cursor:pointer;transition:.15s}.lc:hover{box-shadow:0 8px 22px rgba(0,0,0,.1);transform:translateY(-2px)}.lc h3{margin:6px 0 4px}
+  .pill{display:inline-block;font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:99px;letter-spacing:.04em;text-transform:uppercase}.p-fun{background:#e3f4d4;color:#2a6a1f}.p-off{background:#fff0c9;color:#8a6200}.p-st{background:#eef1e6;color:#5d6b57}.p-pend{background:#fdeadf;color:#b4531a}.p-live{background:#e3eefc;color:#1f5fa8}
+  #lg input,#lg select,#lg textarea{width:100%;padding:10px 12px;border:1.5px solid #dfe6d3;border-radius:10px;font:inherit;background:#fff}#lg label.l{display:block;font-size:.78rem;font-weight:700;color:#5d6b57;margin:10px 0 4px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.g2{grid-template-columns:1fr}}
+  table.st{width:100%;border-collapse:collapse;font-size:.9rem}table.st th{background:#eef6d9;text-align:left;padding:8px 8px;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}table.st td{padding:8px;border-top:1px solid #eef1e6}table.st td.n,table.st th.n{text-align:right}table.st tr.top td{font-weight:800}
+  .xt{overflow:auto}.xt table{border-collapse:collapse;font-size:.8rem;min-width:420px}.xt th,.xt td{border:1px solid #cdd8bd;padding:6px 8px;text-align:center}.xt th{background:#eef6d9}.xt td.d{background:#1f3d1a}.xt td.w{background:#e8f6da;font-weight:700}.xt td.t{font-weight:800;background:#f6f9ee}
+  .rd{margin:10px 0 4px;font-weight:800;text-transform:uppercase;font-size:.78rem;letter-spacing:.08em;color:#5d6b57}.mt{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dfe6d3;border-radius:10px;padding:8px 10px;margin:5px 0}.mt .t{flex:1;min-width:0}.mt .t.r{text-align:right}.mt b.w{color:#2a6a1f}.mt input{width:54px;text-align:center;padding:6px}.mt .sc{font-weight:800;min-width:56px;text-align:center}
+  .podium{display:flex;gap:10px;align-items:flex-end;justify-content:center;margin:8px 0 14px}.podium div{flex:1;max-width:190px;text-align:center;border-radius:12px 12px 0 0;padding:10px 6px;color:#1a1200;font-weight:800}.podium .p1{background:linear-gradient(#ffe27a,#D4A017);min-height:120px}.podium .p2{background:linear-gradient(#e9eef2,#b9c4cf);min-height:96px}.podium .p3{background:linear-gradient(#f3c9a0,#c98a52);min-height:78px}.podium small{display:block;font-weight:600}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.acts button,.acts a{border:0;border-radius:99px;padding:8px 14px;font:700 .82rem system-ui;cursor:pointer;background:#eef6d9;color:#1f3d1a;text-decoration:none}.acts .go{background:#3c7a2e;color:#fff}.acts .no{background:#fdecea;color:#b23b2e}
+  @media print{nav,footer,.acts,.tabs3,#kr-help-root,.kr-listen{display:none!important}}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="wrap">
+  <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="KenRho Park Tennis Club crest" /><span>KenRho Park</span></a>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html#about">About</a><a href="index.html#membership">Membership</a><a href="coach.html">Coaching</a><a href="leagues.html">Leagues</a><a href="fundraiser.html">Fundraiser</a><a href="shop.html">Shop</a><a href="index.html#contact">Contact</a>
+    <a href="auth.html" class="btn btn-primary btn-sm">Member login</a>
+  </div>
+  <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+</div></nav>
+<header class="hero" style="padding-bottom:26px"><div class="wrap"><div>
+  <div class="hero-eyebrow">Play. Compete. Have fun.</div><h1>Leagues &amp; tournaments</h1>
+  <p class="lede">Follow the club's tournaments, join a league, or start your own. Fun leagues are open to everyone; official leagues are approved by the club executive.</p>
+  <div class="hero-cta"><button class="btn btn-primary" id="new-btn" type="button">+ Start a league</button></div>
+</div></div></header>
+<div class="seam"></div>
+<section><div class="wrap" id="lg"><div class="box">Loading…</div></div></section>
+<footer><div class="wrap"><div><div class="nav-brand" style="margin-bottom:10px;"><img src="assets/logo-mark.png" alt="" style="height:34px;width:34px;" /><span style="font-family:var(--font-display);font-size:1.2rem;">KenRho Park</span></div></div><div><p><a href="index.html">Home</a></p><p><a href="fundraiser.html">Fundraiser</a></p><p><a href="shop.html">Club shop</a></p></div></div><div class="wrap foot-small">&copy; <span id="year"></span> KenRho Park Tennis Club. All rights reserved.</div></footer>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script><script src="js/supabaseClient.js"></script><script src="js/site.js"></script>
+<script src="js/leagues.js"></script>
+<script src="js/kr-boost.js" defer></script><script src="js/pwa.js"></script>
+</body>
+</html>

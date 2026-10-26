@@ -1,91 +1,66 @@
-// Appoint / remove officers. Only the club account (and Saul) may do this; enforced in the database by appoint_officer().
-const APPOINTERS = ["kenrhoparktennisclub@gmail.com", "saulestoo@gmail.com"];
-const LABEL = { chairman: "Chairman", secretary: "Secretary", treasurer: "Treasurer", committee: "Committee members", coach: "Coach" };
-let SHOPTEAM = [];
-let OFF = [], PEOPLE = [];
+// Officers & teams. Rules:
+//  • The CLUB ACCOUNT only appoints the executive (chairman, secretary, treasurer). It never removes anyone, because a shared account can't be traced.
+//  • The EXECUTIVE adds and removes administrators, committee, the coach, the shop team and the fundraising team.
+//  • Everything is recorded with the person's name in User activity.
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CLUB_EMAIL = "kenrhoparktennisclub@gmail.com";
+let OFF = [], SHOP = [], FUND = [], PEOPLE = [], ME = {}, CLUB = false, EXEC = false;
+const by = (r) => OFF.filter((o) => o.role === r);
 const nameOf = (o) => o.full_name || (PEOPLE.find((p) => (p.email || "").toLowerCase() === o.email) || {}).full_name || "";
-const who = (o) => `<strong>${esc(nameOf(o) || o.email)}</strong>${nameOf(o) ? `<br><span class="muted small">${esc(o.email)}</span>` : ""}${o.signed_up ? "" : `<br><span class="muted small">Has not signed up yet</span>`}`;
+const who = (o) => `<strong>${esc(nameOf(o) || o.email)}</strong>${nameOf(o) ? `<br><span class="muted small">${esc(o.email)}</span>` : ""}${o.signed_up === false ? `<br><span class="muted small">Has not signed up yet</span>` : ""}`;
+const row = (o, rm) => `<div class="li2"><div>${who(o)}</div>${rm ? `<button class="btn btn-sm btn-danger" ${rm}="${esc(o.email)}">Remove</button>` : ""}</div>`;
 
-function coachCard() {
-  const cs = OFF.filter((o) => o.role === "coach");
-  return `<div class="oc"><h3>Coach</h3><p class="muted small">The coach can edit the Coaching page only.</p>${cs.map((o) => `<div class="li2"><div>${who(o)}</div><button class="btn btn-sm btn-danger" data-remove="${esc(o.email)}">Remove</button></div>`).join("") || `<p class="muted small">No coach appointed.</p>`}
-    <input type="email" list="people-dl" id="in-coach" placeholder="Coach's email address"><button class="btn btn-primary mt-8" data-appoint="coach">Appoint coach</button></div>`;
+function roleCard(title, role, hint, opts) {
+  opts = opts || {}; const list = by(role);
+  return `<div class="oc"><h3>${title}</h3><p class="muted small">${hint}</p>${list.map((o) => row(o, opts.canRemove ? "data-remove" : null)).join("") || `<p class="muted small">${opts.empty || "None."}</p>`}
+    <input type="email" list="people-dl" id="in-${role}" placeholder="Their email address"><button class="btn btn-primary mt-8" data-appoint="${role}">${opts.btn || "Appoint"}</button></div>`;
 }
-function shopCard() {
-  const m = SHOPTEAM.filter((x) => x.role === "manager"), a = SHOPTEAM.filter((x) => x.role === "assistant");
-  const line = (x) => `<div class="li2"><div><strong>${esc(x.full_name || x.email)}</strong>${x.full_name ? `<br><span class="muted small">${esc(x.email)}</span>` : ""}${x.signed_up ? "" : `<br><span class="muted small">Has not signed up yet</span>`}</div>${x.email === "saulestoo@gmail.com" ? "" : `<button class="btn btn-sm btn-danger" data-shop-remove="${esc(x.email)}">Remove</button>`}</div>`;
-  return `<div class="oc"><h3>Shop team</h3><p class="muted small">Managers and assistants run the shop: products, orders, receipts, stock takes.</p>
-    <h4 style="margin:8px 0 2px;font-size:.85rem">Shop manager</h4>${m.map(line).join("") || `<p class="muted small">None.</p>`}
-    <input type="email" list="people-dl" id="in-shop-manager" placeholder="New shop manager's email"><button class="btn btn-primary mt-8" data-shop-appoint="manager">Appoint shop manager</button>
-    <h4 style="margin:14px 0 2px;font-size:.85rem">Shop assistants</h4>${a.map(line).join("") || `<p class="muted small">None.</p>`}
-    <input type="email" list="people-dl" id="in-shop-assistant" placeholder="Assistant's email address"><button class="btn btn-primary mt-8" data-shop-appoint="assistant">Add shop assistant</button></div>`;
+function teamCard(title, hint, list, roles, key) {
+  const line = (x) => `<div class="li2"><div><strong>${esc(x.full_name || x.email)}</strong>${x.full_name ? `<br><span class="muted small">${esc(x.email)}</span>` : ""}<br><span class="muted small">${esc(x.role)}${x.signed_up ? "" : " · has not signed up yet"}</span></div>${x.email === "saulestoo@gmail.com" ? "" : `<button class="btn btn-sm btn-danger" data-${key}-remove="${esc(x.email)}">Remove</button>`}</div>`;
+  return `<div class="oc"><h3>${title}</h3><p class="muted small">${hint}</p>${list.map(line).join("") || `<p class="muted small">None.</p>`}
+    <input type="email" list="people-dl" id="in-${key}" placeholder="Their email address"><select id="role-${key}" style="margin-top:6px;width:100%;padding:9px;border:1.5px solid var(--line);border-radius:8px">${roles.map((r) => `<option value="${r[0]}">${r[1]}</option>`).join("")}</select><button class="btn btn-primary mt-8" data-${key}-add>Add</button></div>`;
 }
 function render() {
-  const by = (r) => OFF.filter((o) => o.role === r);
-  const slot = (r) => {
-    const h = by(r)[0];
-    return `<div class="oc"><h3>${LABEL[r]}</h3>
-      <div class="holder ${h ? "" : "vacant"}">${h ? who(h) : "Vacant"}</div>
-      <label class="muted small">${h ? "Appoint a new " + LABEL[r].toLowerCase() + " (the current one moves to committee)" : "Appoint a " + LABEL[r].toLowerCase()}</label>
-      <input type="email" list="people-dl" id="in-${r}" placeholder="Their email address" />
-      <button class="btn btn-primary mt-8" data-appoint="${r}">Appoint ${LABEL[r].toLowerCase()}</button></div>`;
-  };
-  const com = by("committee");
-  const admins = by("admin");
-  $("grid").innerHTML = slot("chairman") + slot("secretary") + slot("treasurer") +
-    `<div class="oc"><h3>${LABEL.committee}</h3>
-      ${com.map((o) => `<div class="li2"><div>${who(o)}</div><button class="btn btn-sm btn-danger" data-remove="${esc(o.email)}">Remove</button></div>`).join("") || `<p class="muted small">None yet.</p>`}
-      <label class="muted small mt-8" style="display:block">Add a committee member</label>
-      <input type="email" list="people-dl" id="in-committee" placeholder="Their email address" />
-      <button class="btn btn-primary mt-8" data-appoint="committee">Add to committee</button></div>
-     ${coachCard()}${shopCard()}<div class="oc"><h3>Administrators</h3><p class="muted small">Set by the system, not on this page.</p>
-      ${admins.map((o) => `<div class="li2"><div>${who(o)}</div></div>`).join("") || `<p class="muted small">None.</p>`}</div>`;
+  const execInfo = `<div class="oc"><h3>Executive</h3><p class="muted small">${CLUB && !EXEC ? "You are signed in with the club account. Appoint the executive below." : "Only the club account appoints the executive."}</p>
+    ${["chairman", "secretary", "treasurer"].map((r) => `<div class="li2"><div><b style="text-transform:capitalize">${r}</b><br>${by(r)[0] ? who(by(r)[0]) : `<span class="muted small">Vacant</span>`}</div></div>`).join("")}</div>`;
+  if (CLUB && !EXEC) {
+    const card = (r) => `<div class="oc"><h3 style="text-transform:capitalize">${r}</h3><div class="holder ${by(r)[0] ? "" : "vacant"}" style="margin:10px 0;padding:10px 12px;background:#eef6d9;border-radius:8px">${by(r)[0] ? who(by(r)[0]) : "Vacant"}</div>
+      <label class="muted small">${by(r)[0] ? "Appoint a new " + r + " (the current one moves to committee)" : "Appoint a " + r}</label><input type="email" list="people-dl" id="in-${r}" placeholder="Their email address"><button class="btn btn-primary mt-8" data-appoint="${r}">Appoint ${r}</button></div>`;
+    $("grid").innerHTML = card("chairman") + card("secretary") + card("treasurer") + `<div class="oc"><h3>About this account</h3><p class="muted small">The club account is shared, so actions on it can't be traced to one person. It can therefore only appoint the executive. It cannot remove anyone, and it cannot change administrators, the committee, the coach, the shop team or the fundraising team. Those are managed by the executive, and every change carries their name.</p></div>`;
+    return;
+  }
+  $("grid").innerHTML = execInfo +
+    roleCard("Administrators", "admin", "Administrators can edit the website and run the club's pages. Removing someone here is recorded with your name.", { canRemove: true, btn: "Add administrator" }) +
+    roleCard("Committee members", "committee", "Committee members help run the club.", { canRemove: true, btn: "Add to committee" }) +
+    roleCard("Coach", "coach", "The coach can edit the Coaching page only.", { canRemove: true, btn: "Appoint coach", empty: "No coach appointed." }) +
+    teamCard("Shop team", "Managers and assistants run the shop: products, orders, receipts and stock takes.", SHOP, [["manager", "Shop manager"], ["assistant", "Shop assistant"]], "shop") +
+    teamCard("Fundraising team", "They run fundraisers: confirm gifts, edit the fundraiser pages.", FUND, [["admin", "Fundraising admin"], ["helper", "Fundraising helper"]], "fund");
 }
-
 async function load() {
   const { data, error } = await window.sb.rpc("list_officers");
   if (error) { $("grid").innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`; return; }
-  OFF = data || [];
-  const t = await window.sb.rpc("list_shop_team"); SHOPTEAM = t.data || [];
+  OFF = data || []; if (EXEC) { SHOP = (await window.sb.rpc("list_shop_team")).data || []; FUND = (await window.sb.rpc("list_fundraising_team")).data || []; }
   render();
 }
-
-async function appoint(email, role, confirmText) {
-  email = (email || "").trim().toLowerCase();
-  if (!email) return window.KR.toast("Type their email address first.", "warn");
-  if (!confirm(confirmText.replace("{who}", email))) return;
-  const { data, error } = await window.sb.rpc("appoint_officer", { p_email: email, p_role: role });
-  if (error) return window.KR.toast(error.message, "error");
-  window.KR.toast(data); await load();
-}
-
-async function shopAppoint(email, role, confirmText) {
-  email = (email || "").trim().toLowerCase(); if (!email) return window.KR.toast("Type their email address first.", "warn");
-  if (!confirm(confirmText.replace("{who}", email))) return;
-  const { data, error } = await window.sb.rpc("appoint_shop_staff", { p_email: email, p_role: role }); if (error) return window.KR.toast(error.message, "error");
-  window.KR.toast(data); await load();
-}
+async function call(fn, args, ok) { const { data, error } = await window.sb.rpc(fn, args); if (error) return window.KR.toast(error.message, "error"); window.KR.toast(data || ok || "Done."); await load(); }
 document.addEventListener("DOMContentLoaded", async () => {
-  const guard = await window.KR_guard("staff"); if (!guard) return;
-  const me = guard.profile;
-  if (!(me.role === "admin" && APPOINTERS.includes((me.email || "").toLowerCase()))) { window.location.href = "admin.html"; return; }
-  $("who").textContent = me.full_name || me.email; $("btn-sign-out").addEventListener("click", window.KR_signOut);
-  const { data } = await window.sb.from("profiles").select("full_name, email").order("full_name");
-  PEOPLE = data || [];
+  const guard = await window.KR_guard("staff").catch(() => null); ME = guard ? guard.profile : (await window.KR.currentProfile()).profile; if (!ME) { location.href = "auth.html"; return; }
+  CLUB = (ME.email || "").toLowerCase() === CLUB_EMAIL; EXEC = ["chairman", "secretary", "treasurer"].includes(ME.role);
+  if (!CLUB && !EXEC) { location.href = "admin.html"; return; }
+  $("who").textContent = ME.full_name || ME.email; $("btn-sign-out").addEventListener("click", window.KR_signOut);
+  const { data } = await window.sb.from("profiles").select("full_name, email").order("full_name"); PEOPLE = data || [];
   $("people-dl").innerHTML = PEOPLE.map((p) => `<option value="${esc(p.email)}">${esc(p.full_name || "")}</option>`).join("");
-
-  $("grid").addEventListener("click", (e) => {
-    const t = e.target;
-    if (t.dataset.shopAppoint) { const r = t.dataset.shopAppoint; return shopAppoint($("in-shop-" + r).value, r, `Make {who} the shop ${r}?`); }
-    if (t.dataset.shopRemove) return shopAppoint(t.dataset.shopRemove, "none", "Remove {who} from the shop team?");
-    if (t.dataset.appoint) {
-      const r = t.dataset.appoint, cur = OFF.find((o) => o.role === r && !["committee", "coach"].includes(r));
-      const msg = `Make {who} the ${r}?` + (cur ? ` ${nameOf(cur) || cur.email} will move to committee.` : "") + (r === "treasurer" ? " This also opens the new season and carries last season's members across." : "");
-      appoint($("in-" + r).value, r, msg);
-    }
-    if (t.dataset.remove) appoint(t.dataset.remove, "member", "Remove {who} from the committee? They stay a normal member.");
+  $("grid").addEventListener("click", async (e) => {
+    const d = e.target.dataset || {}, val = (id) => ($(id) ? $(id).value.trim().toLowerCase() : "");
+    if (d.appoint) { const em = val("in-" + d.appoint); if (!em) return window.KR.toast("Type their email address first.", "warn"); const cur = by(d.appoint)[0];
+      const msg = `Make ${em} the ${d.appoint}?` + (["chairman", "secretary", "treasurer"].includes(d.appoint) && cur ? ` ${nameOf(cur) || cur.email} moves to committee.` : "") + (d.appoint === "treasurer" ? " This also opens the new season and carries last season's members across." : "") + (d.appoint === "admin" ? " Administrators can edit the whole website." : "") + "\n\nThis is recorded with your name.";
+      if (confirm(msg)) call("appoint_officer", { p_email: em, p_role: d.appoint }); }
+    if (d.remove) { if (confirm(`Remove ${d.remove} from their role? They stay a normal member.\n\nThis is recorded with your name.`)) call("appoint_officer", { p_email: d.remove, p_role: "member" }); }
+    if (d.shopAdd !== undefined) { const em = val("in-shop"); if (!em) return window.KR.toast("Type their email address first.", "warn"); call("appoint_shop_staff", { p_email: em, p_role: $("role-shop").value }); }
+    if (d.shopRemove) { if (confirm(`Remove ${d.shopRemove} from the shop team?`)) call("appoint_shop_staff", { p_email: d.shopRemove, p_role: "none" }); }
+    if (d.fundAdd !== undefined) { const em = val("in-fund"); if (!em) return window.KR.toast("Type their email address first.", "warn"); call("appoint_fundraising_staff", { p_email: em, p_role: $("role-fund").value }); }
+    if (d.fundRemove) { if (confirm(`Remove ${d.fundRemove} from the fundraising team?`)) call("appoint_fundraising_staff", { p_email: d.fundRemove, p_role: "none" }); }
   });
   load();
 });
