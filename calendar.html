@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Club calendar — KenRho Park Tennis Club</title>
+<meta name="description" content="What's on at KenRho Park Tennis Club: social tennis, league nights, tournaments, coaching, fundraisers and club meetings." />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/kr-favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/kr-apple-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1f3d1a" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  #cal{max-width:1020px}#cal .box{background:#fff;border:1px solid #dfe6d3;border-radius:16px;padding:14px;margin-bottom:14px}
+  .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}.top h2{margin:0;text-transform:capitalize}
+  .btn2{border:1.5px solid #dfe6d3;background:#fff;border-radius:99px;padding:8px 14px;font:700 .85rem system-ui;cursor:pointer;color:#1f3d1a}.btn2.on{background:#1f3d1a;color:#fff;border-color:#1f3d1a}.btn2.go{background:#3c7a2e;color:#fff;border-color:#3c7a2e}.btn2.no{background:#fdecea;color:#b23b2e;border-color:#f3c6c0}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.chip{border:1.5px solid #dfe6d3;background:#fff;border-radius:99px;padding:5px 11px;font:700 .74rem system-ui;cursor:pointer;display:inline-flex;gap:6px;align-items:center}.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}.chip.off{opacity:.4}
+  .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#dfe6d3;border:1px solid #dfe6d3;border-radius:12px;overflow:hidden}.grid7 .h{background:#eef6d9;text-align:center;font:700 .68rem system-ui;padding:6px 2px;text-transform:uppercase;letter-spacing:.06em;color:#41533a}
+  .day{background:#fff;min-height:84px;padding:4px;cursor:pointer;position:relative}.day.o{background:#fafbf6;color:#9aa593}.day.today{box-shadow:inset 0 0 0 2px #3c7a2e}.day.sel{background:#f3f9e6}.day .n{font-size:.74rem;font-weight:700}
+  .ev{display:block;font-size:.64rem;line-height:1.2;color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media(max-width:640px){.day{min-height:52px}.ev{display:none}.dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:3px}.dots i{width:7px;height:7px;border-radius:50%}}@media(min-width:641px){.dots{display:none}}
+  .ag{display:flex;gap:12px;padding:10px 0;border-top:1px solid #eef1e6;cursor:pointer}.ag:first-child{border-top:0}.ag .d{min-width:54px;text-align:center;background:#eef6d9;border-radius:10px;padding:6px 4px}.ag .d b{display:block;font-size:1.3rem;line-height:1}.ag .d span{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:#5d6b57}.ag .t{flex:1;min-width:0}.ag .t b{display:block}.ag small{color:#6b7a63}
+  .tag{display:inline-block;font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff;text-transform:uppercase;letter-spacing:.05em}
+  .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;display:flex;align-items:center;justify-content:center;padding:12px}.md{background:#fff;border-radius:16px;max-width:480px;width:100%;max-height:92vh;overflow:auto;padding:16px}.md label{display:block;font-size:.76rem;color:#5d6b57;margin:10px 0 3px}.md input,.md select,.md textarea{width:100%;padding:10px 11px;border:1.5px solid #dfe6d3;border-radius:9px;font:inherit;background:#fff}.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media print{nav,footer,.top .btn2,.chips,#kr-help-root,.kr-listen{display:none!important}}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="wrap">
+  <a class="nav-brand" href="index.html"><img src="assets/logo-mark.png" alt="KenRho Park Tennis Club crest" /><span>KenRho Park</span></a>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html#about">About</a><a href="index.html#membership">Membership</a><a href="coach.html">Coaching</a><a href="leagues.html">Leagues</a><a href="calendar.html">Calendar</a><a href="fundraiser.html">Fundraiser</a><a href="shop.html">Shop</a><a href="index.html#contact">Contact</a>
+    <a href="auth.html" class="btn btn-primary btn-sm">Member login</a>
+  </div>
+  <button class="nav-toggle" aria-label="Menu">&#9776;</button>
+</div></nav>
+<header class="hero" style="padding-bottom:22px"><div class="wrap"><div>
+  <div class="hero-eyebrow">What's on</div><h1>Club calendar</h1>
+  <p class="lede">Social tennis, league nights, tournaments, coaching, fundraisers and club meetings — all in one place. League fixtures and fundraiser days appear here automatically.</p>
+  <div class="hero-cta"><button class="btn btn-primary" id="add-btn" type="button" style="display:none">+ Add an event</button><button class="btn btn-outline-light" id="ics-btn" type="button">Add all to my calendar</button></div>
+</div></div></header>
+<div class="seam"></div>
+<section><div class="wrap" id="cal"><div class="box">Loading…</div></div></section>
+<footer><div class="wrap"><div><div class="nav-brand" style="margin-bottom:10px;"><img src="assets/logo-mark.png" alt="" style="height:34px;width:34px;" /><span style="font-family:var(--font-display);font-size:1.2rem;">KenRho Park</span></div></div><div><p><a href="index.html">Home</a></p><p><a href="leagues.html">Leagues</a></p><p><a href="fundraiser.html">Fundraiser</a></p></div></div><div class="wrap foot-small">&copy; <span id="year"></span> KenRho Park Tennis Club. All rights reserved.</div></footer>
+<div id="modal"></div>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script><script src="js/supabaseClient.js"></script><script src="js/site.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/kr-boost.js" defer></script><script src="js/pwa.js"></script>
+</body>
+</html>

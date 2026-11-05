@@ -18,3 +18,7 @@
 --  * user_activity_log + activity_feed(); fundraising_team (Gops Modise); shop_team (Ruan Manickum)
 --  * leagues / league_participants / league_matches with explicit grants (needed for new tables from 30 October); Social Pairs Round Robin seeded
 --  * fundraisers: one-day events (Spring Smash, 31 Oct 2026), plate reservations
+-- Round 5 (migrations: leagues_tennis_scoring, club_calendar):
+--  * leagues use tennis scoring (games / sets, tiebreak first to 7 or 10 winning by 2); football points removed
+--  * players enter scores, opponent confirms or disputes, auto-confirm after N hours, walkover claims, admin correction (league_* functions)
+--  * club_events + event_rsvps (explicit grants) — edited by admins, the executive and committee
