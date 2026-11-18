@@ -21,6 +21,7 @@
     if (a) document.querySelectorAll(".nav-links.open").forEach(function (n) { n.classList.remove("open"); });
   });
   function go() {
+    load("nav-fit.js");
     needClient(function () {
       load("auth-ui.js");
       load("activity.js");

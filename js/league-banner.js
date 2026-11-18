@@ -11,7 +11,7 @@
   Promise.all([
     sb.from("leagues").select("id,name,kind,status").eq("approval", "approved").in("status", ["open", "in_progress"]).order("created_at", { ascending: false }).limit(4),
     sb.from("club_events").select("title,starts_at").eq("is_public", true).gte("starts_at", new Date().toISOString()).order("starts_at").limit(1),
-    sb.from("fundraisers").select("title,event_date").eq("is_active", true).eq("kind", "one_day").gte("event_date", today).order("event_date").limit(1),
+    sb.from("fundraisers").select("title,event_date").eq("is_active", true).eq("kind", "one_day").eq("status", "active").gte("event_date", today).order("event_date").limit(1),
   ]).then(function (r) {
     var leagues = (r[0].data || []), ev = (r[1].data || [])[0], fu = (r[2].data || [])[0], next = null;
     if (ev) next = { t: ev.title, d: new Date(ev.starts_at) }; if (fu && (!next || new Date(fu.event_date + "T09:00:00") < next.d)) next = { t: fu.title, d: new Date(fu.event_date + "T09:00:00") };

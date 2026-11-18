@@ -15,30 +15,51 @@
 
   function pick(list) {
     var want = new URLSearchParams(location.search).get("f"); if (want) { var w = list.filter(function (x) { return x.slug === want; })[0]; if (w) return w; }
-    var today = new Date().toISOString().slice(0, 10), up = list.filter(function (x) { return x.kind === "one_day" && x.event_date >= today; }).sort(function (a, b) { return a.event_date < b.event_date ? -1 : 1; });
-    return up[0] || list.filter(function (x) { return x.kind === "ongoing"; })[0] || list[0];
+    var live = list.filter(function (x) { return x.status === "active"; }), today = new Date().toISOString().slice(0, 10);
+    var up = live.filter(function (x) { return x.kind === "one_day" && x.event_date >= today; }).sort(function (a, b) { return a.event_date < b.event_date ? -1 : 1; });
+    return up[0] || live.filter(function (x) { return x.kind === "ongoing"; })[0] || live[0] || list[0];
   }
   function paint() {
     document.title = F.title + " — KenRho Park Tennis Club"; $("fund-title").textContent = F.title; $("fund-summary").textContent = F.summary || ""; $("fund-img").src = F.image_url && F.kind !== "one_day" ? F.image_url : "assets/logo.png";
     var ev = $("event");
     if (F.kind === "one_day" && F.event_date) {
       var d = new Date(F.event_date + "T12:00:00"), dl = daysTo(F.event_date);
-      ev.style.display = ""; ev.innerHTML = '<div class="ev"><div class="dt"><span>' + d.toLocaleDateString("en-ZA", { weekday: "long" }) + "</span><b>" + d.getDate() + "</b><span>" + d.toLocaleDateString("en-ZA", { month: "long", year: "numeric" }) + '</span></div><div><h2>' + esc(F.title) + '</h2><div style="font-weight:700">' + esc(F.time_label || "") + "</div><div class=\"muted\">" + esc(F.venue || "") + "</div>" +
-        (F.price_label ? '<div class="pr">' + esc(F.price_label) + "</div>" : "") + (F.extra_info ? "<div>" + esc(F.extra_info) + "</div>" : "") + (dl != null ? '<div class="muted" style="margin-top:4px">' + (dl > 0 ? dl + " day" + (dl === 1 ? "" : "s") + " to go" : dl === 0 ? "Today!" : "This event has taken place — thank you!") + "</div>" : "") +
-        '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" id="ev-cal" type="button">Add to my calendar</button></div></div>' + (F.image_url ? '<img src="' + esc(F.image_url) + '" alt="' + esc(F.title) + ' poster">' : "") + "</div>";
-      $("ev-cal").onclick = function () { var a = F.event_date.replace(/-/g, ""), ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART;VALUE=DATE:" + a + "\r\nSUMMARY:" + F.title + "\r\nLOCATION:" + (F.venue || "KenRho Park Tennis Club") + "\r\nDESCRIPTION:" + (F.time_label || "") + " " + (F.price_label || "") + "\r\nEND:VEVENT\r\nEND:VCALENDAR"; var l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); l.download = F.slug + ".ics"; l.click(); };
+      var posterUrl = F.status === "cancelled" && F.cancelled_image_url ? F.cancelled_image_url : F.image_url;
+      var banner = F.status === "cancelled" ? '<div style="background:#b10f1f;color:#ffd400;font-weight:800;text-align:center;border-radius:12px;padding:12px;margin-bottom:12px;letter-spacing:.04em">⚠️ THIS EVENT HAS BEEN CANCELLED<div style="color:#fff;font-weight:600;letter-spacing:0;margin-top:2px">' + esc(F.status_note || "") + "</div></div>" : "";
+      ev.style.display = ""; ev.innerHTML = banner + '<div class="ev"><div class="dt"><span>' + d.toLocaleDateString("en-ZA", { weekday: "long" }) + "</span><b>" + d.getDate() + "</b><span>" + d.toLocaleDateString("en-ZA", { month: "long", year: "numeric" }) + '</span></div><div><h2>' + esc(F.title) + '</h2><div style="font-weight:700">' + esc(F.time_label || "") + "</div><div class=\"muted\">" + esc(F.venue || "") + "</div>" +
+        (F.price_label ? '<div class="pr">' + esc(F.price_label) + "</div>" : "") + (F.extra_info ? "<div>" + esc(F.extra_info) + "</div>" : "") + (F.status === "cancelled" ? "" : dl != null ? '<div class="muted" style="margin-top:4px">' + (dl > 0 ? dl + " day" + (dl === 1 ? "" : "s") + " to go" : dl === 0 ? "Today!" : "This event has taken place — thank you!") + "</div>" : "") +
+        '<div style="margin-top:8px">' + (F.status === "active" ? '<button class="btn btn-sm btn-primary" id="ev-cal" type="button">Add to my calendar</button>' : "") + '</div></div>' + (posterUrl ? '<img src="' + esc(posterUrl) + '" alt="' + esc(F.title) + ' poster">' : "") + "</div>";
+      if ($("ev-cal")) $("ev-cal").onclick = function () { var a = F.event_date.replace(/-/g, ""), ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nDTSTART;VALUE=DATE:" + a + "\r\nSUMMARY:" + F.title + "\r\nLOCATION:" + (F.venue || "KenRho Park Tennis Club") + "\r\nDESCRIPTION:" + (F.time_label || "") + " " + (F.price_label || "") + "\r\nEND:VEVENT\r\nEND:VCALENDAR"; var l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); l.download = F.slug + ".ics"; l.click(); };
     } else ev.style.display = "none";
+    var closed = F.status !== "active"; $("give").style.display = closed ? "none" : ""; $("progress").style.display = F.status === "cancelled" ? "none" : "";
+    var rb = $("results"); if (F.results_note) { rb.style.display = ""; rb.innerHTML = '<h2 style="margin:0 0 6px">How it went</h2><p style="white-space:pre-line;margin:0">' + esc(F.results_note) + "</p>"; } else rb.style.display = "none";
     var raised = Number(PUB.raised || 0), goal = Number(F.goal || 0), pct = goal > 0 ? Math.min(100, Math.round(raised / goal * 100)) : 0, plates = F.price_amount ? Number(PUB.plates || 0) : 0;
     $("progress").innerHTML = '<div class="big">' + R(raised) + '</div><div class="muted">raised' + (goal > 0 ? " of " + R(goal) + " goal" : "") + "</div>" + (goal > 0 ? '<div class="meter"><i style="width:' + pct + '%"></i></div>' : "") +
-      '<div class="stats"><div><b>' + (PUB.donors || 0) + "</b><span>supporters</span></div>" + (F.price_amount && plates ? "<div><b>" + plates + "</b><span>plates confirmed</span></div>" : "") + (goal > 0 ? "<div><b>" + pct + "%</b><span>of goal</span></div>" : "") + "</div>";
+      '<div class="stats"><div><b>' + (PUB.donors || 0) + "</b><span>supporters</span></div>" + (F.price_amount && plates ? "<div><b>" + plates + "</b><span>" + esc(F.unit_plural || "plates") + " confirmed</span></div>" : "") + (goal > 0 ? "<div><b>" + pct + "%</b><span>of goal</span></div>" : "") + "</div>";
     var st = $("story"); if (F.story) { st.style.display = ""; st.innerHTML = '<h2 style="margin:0 0 6px">' + (F.kind === "one_day" ? "About the day" : "Why we are fundraising") + '</h2><p style="white-space:pre-line;margin:0">' + esc(F.story) + "</p>"; } else st.style.display = "none";
     var w = PUB.wall || []; $("wall-box").style.display = w.length ? "" : "none"; $("wall").innerHTML = w.map(function (x) { return '<div class="w"><b>' + esc(x.name) + "</b>" + (x.message ? ' — “' + esc(x.message) + '”' : "") + "</div>"; }).join("");
-    var oth = ALL.filter(function (x) { return x.id !== F.id && x.is_active; }), ob = $("others");
+    var oth = ALL.filter(function (x) { return x.id !== F.id && x.is_active && x.status === "active"; }), ob = $("others");
+    var past = ALL.filter(function (x) { return x.id !== F.id && x.status !== "active"; }).sort(function (a, b) { return (b.event_date || "") < (a.event_date || "") ? -1 : 1; }), pb = $("past");
+    if (past.length) { pb.style.display = ""; pb.innerHTML = '<h2 style="margin:0 0 6px">Past fundraisers</h2>' + past.map(function (x) { return '<div class="oth"><div style="flex:1"><a href="?f=' + esc(x.slug) + '">' + esc(x.title) + "</a><div class=\"muted small\">" + (x.event_date ? fmtLong(x.event_date) : "") + (x.status === "cancelled" ? ' · <b style="color:#b10f1f">cancelled</b>' : " · finished") + "</div></div></div>"; }).join(""); } else pb.style.display = "none";
     if (oth.length) { ob.style.display = ""; ob.innerHTML = '<h2 style="margin:0 0 6px">More ways to help</h2>' + oth.map(function (x) { return '<div class="oth"><div style="flex:1"><a href="?f=' + esc(x.slug) + '">' + esc(x.title) + "</a><div class=\"muted small\">" + (x.kind === "one_day" && x.event_date ? fmtLong(x.event_date) : "Ongoing appeal") + "</div></div></div>"; }).join(""); } else ob.style.display = "none";
     // giving form: plates for events with a price, any amount otherwise
-    var hasPrice = !!F.price_amount; $("plates-wrap").style.display = hasPrice ? "" : "none"; $("give-title").textContent = hasPrice ? "Reserve your plates" : "Give to the fundraiser"; $("amt-lbl").textContent = hasPrice ? "Total (R) — change it to add a donation on top" : "Amount (R)"; $("amts").style.display = hasPrice ? "none" : "";
-    if (hasPrice) { $("plates-lbl").textContent = "How many plates? (" + F.price_label + ")"; $("plate-btns").innerHTML = [1, 2, 3, 4, 5, 6, 8, 10].map(function (n) { return '<button type="button" data-q="' + n + '" class="' + (n === qty ? "on" : "") + '">' + n + "</button>"; }).join(""); $("f-amt").value = qty * F.price_amount; }
+    var hasPrice = !!F.price_amount; $("plates-wrap").style.display = hasPrice ? "" : "none"; $("give-title").textContent = hasPrice ? "Reserve your " + (F.unit_plural || "plates") : "Give to the fundraiser"; $("amt-lbl").textContent = hasPrice ? "Total (R) — change it to add a donation on top" : "Amount (R)"; $("amts").style.display = hasPrice ? "none" : "";
+    if (hasPrice) { $("plates-lbl").textContent = "How many " + (F.unit_plural || "plates") + "? (" + F.price_label + ")"; $("plate-btns").innerHTML = [1, 2, 3, 4, 5, 6, 8, 10].map(function (n) { return '<button type="button" data-q="' + n + '" class="' + (n === qty ? "on" : "") + '">' + n + "</button>"; }).join(""); $("f-amt").value = qty * F.price_amount; }
     $("f-method").querySelector('option[value="cash"]').textContent = hasPrice ? "Cash on the day" : "Cash at the clubhouse";
+  }
+  async function supporters() {
+    var box = $("supporters"); if (!box) return;
+    var r = await sb.rpc("fundraiser_supporters"); var d = r.data; if (!d || !(d.total > 0)) { box.style.display = "none"; return; }
+    box.style.display = "";
+    box.innerHTML = '<h2 style="margin:0 0 4px">Together we have raised ' + R(d.total) + '</h2><div class="muted" style="margin-bottom:8px">Every contribution to the club — donations and fundraiser days — as recorded in the club\'s books.</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' + (d.by_year || []).map(function (y) { return '<span class="pill" style="background:#eef6d9;color:#2f5a22;border-radius:99px;padding:4px 12px;font-weight:800;font-size:.8rem">' + y.year + ": " + R(y.total) + "</span>"; }).join("") + "</div>" +
+      ((d.supporters || []).length ? '<h3 style="margin:10px 0 4px;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;color:#5d6b57">Thank you to</h3>' + d.supporters.map(function (x) { return '<div class="w" style="padding:8px 0;border-bottom:1px solid #eef1e6"><b>' + esc(x.name) + "</b>" + (x.total != null ? " — " + R(x.total) : "") + (x.times > 1 ? ' <small class="muted">(' + x.times + " gifts)</small>" : "") + "</div>"; }).join("") : "");
+  }
+  async function mine() {
+    var box = $("mine"); if (!box) return; var s = await sb.auth.getSession(); if (!s.data.session) { box.style.display = "none"; return; }
+    var r = await sb.rpc("my_contributions"), list = r.data || []; if (!list.length) { box.style.display = "none"; return; }
+    var tot = list.reduce(function (a, x) { return a + Number(x.amount); }, 0); box.style.display = "";
+    box.innerHTML = '<h2 style="margin:0 0 4px">Your contributions</h2><div class="muted" style="margin-bottom:6px">You have helped the club with <b>' + R(tot) + "</b> — thank you!</div>" + list.map(function (x) { return '<div class="w" style="padding:6px 0;border-bottom:1px solid #eef1e6"><b>' + R(x.amount) + "</b> · " + esc(x.title) + ' <small class="muted">' + new Date(x.d + "T12:00:00").toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" }) + "</small></div>"; }).join("");
   }
   async function load() {
     var r = await sb.from("fundraisers").select("*").eq("is_active", true).order("event_date", { nullsFirst: false });
@@ -46,7 +67,7 @@
     ALL = list; F = F ? (list.filter(function (x) { return x.id === F.id; })[0] || pick(list)) : pick(list);
     var p = await sb.rpc("fundraiser_public", { p_id: F.id }); PUB = p.data || {};
     var pl = await sb.from("fundraiser_pledges").select("quantity").eq("fundraiser_id", F.id).eq("status", "received"); if (pl.data) PUB.plates = pl.data.reduce(function (s, x) { return s + (x.quantity || 1); }, 0);
-    paint(); return F;
+    paint(); supporters(); mine(); return F;
   }
 
   function form() {
@@ -63,7 +84,7 @@
         if (f && $("f-method").value === "eft") { var ext = (f.name.split(".").pop() || "dat").toLowerCase(); path = "fundraiser/" + (crypto.randomUUID ? crypto.randomUUID() : Date.now()) + "." + ext; var up = await sb.storage.from("shop-payment-proofs").upload(path, f); if (up.error) throw up.error; }
         var q = F.price_amount ? qty : 1, r = await sb.rpc("submit_pledge", { p_fundraiser: F.id, p_name: name, p_email: $("f-email").value.trim(), p_phone: $("f-phone").value.trim(), p_amount: amt, p_message: $("f-msg").value.trim(), p_anonymous: $("f-anon").checked, p_method: $("f-method").value, p_proof: path || "", p_quantity: q });
         if (r.error) throw r.error;
-        $("thanks-msg").textContent = F.price_amount ? "You have reserved " + q + " plate" + (q > 1 ? "s" : "") + " (" + R(amt) + "). " + ($("f-method").value === "eft" ? "Your reservation is confirmed once the payment shows in the bank." : "Please pay on the day and we will have your plate ready.") : "Your gift of " + R(amt) + " is noted. " + ($("f-method").value === "eft" ? "As soon as the treasurer sees the payment in the bank it will appear in the total." : "Please hand it to the treasurer at the clubhouse and it will appear in the total.");
+        $("thanks-msg").textContent = F.price_amount ? "You have reserved " + q + " " + (q > 1 ? (F.unit_plural || "plates") : (F.unit_label || "plate")) + " (" + R(amt) + "). " + ($("f-method").value === "eft" ? "Your reservation is confirmed once the payment shows in the bank." : "Please pay on the day and we will have your order ready.") : "Your gift of " + R(amt) + " is noted. " + ($("f-method").value === "eft" ? "As soon as the treasurer sees the payment in the bank it will appear in the total." : "Please hand it to the treasurer at the clubhouse and it will appear in the total.");
         $("pg-form").classList.remove("on"); $("pg-thanks").classList.add("on");
       } catch (e) { toast(e.message || String(e), "error"); } finally { btn.disabled = false; }
     };

@@ -31,7 +31,7 @@
   // ------------------------------------------------------------ data
   async function load() {
     var from = new Date(CUR.getFullYear(), CUR.getMonth() - 1, 1).toISOString(), to = new Date(CUR.getFullYear(), CUR.getMonth() + 2, 1).toISOString();
-    var ev = await sb.from("club_events").select("*").order("starts_at"), fu = await sb.from("fundraisers").select("title,slug,event_date,time_label,venue,price_label,summary,is_active,kind").eq("is_active", true).eq("kind", "one_day").not("event_date", "is", null);
+    var ev = await sb.from("club_events").select("*").order("starts_at"), fu = await sb.from("fundraisers").select("title,slug,event_date,time_label,venue,price_label,summary,is_active,kind").eq("is_active", true).eq("kind", "one_day").neq("status", "cancelled").not("event_date", "is", null);
     var mt = await sb.from("league_matches").select("id,league_id,round,a_id,b_id,due_at,court,status").gte("due_at", from).lt("due_at", to).not("b_id", "is", null);
     RAW.events = ev.data || []; RAW.fund = fu.data || []; RAW.matches = (mt.data || []).filter(function (m) { return m.status !== "confirmed" && m.status !== "walkover" || true; });
     var lids = [...new Set(RAW.matches.map(function (m) { return m.league_id; }))];
