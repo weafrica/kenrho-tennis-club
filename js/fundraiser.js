@@ -51,7 +51,7 @@
     var box = $("supporters"); if (!box) return;
     var r = await sb.rpc("fundraiser_supporters"); var d = r.data; if (!d || !(d.total > 0)) { box.style.display = "none"; return; }
     box.style.display = "";
-    box.innerHTML = '<h2 style="margin:0 0 4px">Together we have raised ' + R(d.total) + '</h2><div class="muted" style="margin-bottom:8px">Every contribution to the club — donations and fundraiser days — as recorded in the club\'s books.</div>' +
+    box.innerHTML = '<h2 style="margin:0 0 4px">Raised at our fundraiser days: ' + R(d.total) + '</h2><div class="muted" style="margin-bottom:8px">Takings from our fundraiser events. Thank you to everyone who came, played, cooked and bought a roll.</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">' + (d.by_year || []).map(function (y) { return '<span class="pill" style="background:#eef6d9;color:#2f5a22;border-radius:99px;padding:4px 12px;font-weight:800;font-size:.8rem">' + y.year + ": " + R(y.total) + "</span>"; }).join("") + "</div>" +
       ((d.supporters || []).length ? '<h3 style="margin:10px 0 4px;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em;color:#5d6b57">Thank you to</h3>' + d.supporters.map(function (x) { return '<div class="w" style="padding:8px 0;border-bottom:1px solid #eef1e6"><b>' + esc(x.name) + "</b>" + (x.total != null ? " — " + R(x.total) : "") + (x.times > 1 ? ' <small class="muted">(' + x.times + " gifts)</small>" : "") + "</div>"; }).join("") : "");
   }
